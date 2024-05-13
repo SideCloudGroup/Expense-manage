@@ -33,7 +33,7 @@
                                             <td>
                                                 {if $item.paid}
                                                     <span class="badge bg-green text-green-fg btn"
-                                                          hx-post="/admin/item/{$item.id}" hx-trigger="click"
+                                                          hx-post="/user/item/{$item.id}" hx-trigger="click"
                                                           hx-vals='{"paid": 0}'>已支付</span>
                                                 {else}
                                                     <span class="badge bg-red text-red-fg btn"
