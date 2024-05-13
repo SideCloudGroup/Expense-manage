@@ -38,14 +38,21 @@ class UserService extends Service
     public function getBestPay(): array
     {
         $users = Db::table('user')->field('id, username')->select();
+        $userUnpaidAmounts = [];
         $result = [];
+        foreach ($users as $user) {
+            $userUnpaidAmounts[$user['id']] = (new Item())->where('userid', $user['id'])->where('paid', 0)->sum('amount');
+        }
         foreach ($users as $user1) {
             foreach ($users as $user2) {
                 if ($user1['id'] >= $user2['id']) {
                     continue;
                 }
-                $totalPrice1 = (new Item())->where('userid', $user2['id'])->where('paid', 0)->where('initiator', $user1['id'])->sum('amount');
-                $totalPrice2 = (new Item())->where('userid', $user1['id'])->where('paid', 0)->where('initiator', $user2['id'])->sum('amount');
+                $totalPrice1 = $userUnpaidAmounts[$user1['id']];
+                $totalPrice2 = $userUnpaidAmounts[$user2['id']];
+                if ($totalPrice1 - $totalPrice2 == 0) {
+                    continue;
+                }
                 if ($totalPrice1 > $totalPrice2) {
                     $result[$user2['username']][$user1['username']] = $totalPrice1 - $totalPrice2;
                 } else {
@@ -53,6 +60,7 @@ class UserService extends Service
                 }
             }
         }
+        $time_end = microtime(true);
         return $result;
     }
 }
