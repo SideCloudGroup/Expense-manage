@@ -19,9 +19,11 @@
                                                 <h3 class="card-title">{$key}</h3>
                                             </div>
                                             <div class="card-body">
-                                                {volist name="user" id="item"}
-                                                {$item} => {$key}
-                                                {/volist}
+                                                <ul>
+                                                    {volist name="user" id="item"}
+                                                        <li>向 {$key} 支付￥ {$item}  </li>
+                                                    {/volist}
+                                                </ul>
                                             </div>
                                         </div>
                                     </div>

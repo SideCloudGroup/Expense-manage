@@ -39,17 +39,18 @@ class UserService extends Service
     {
         $users = Db::table('user')->field('id, username')->select();
         $result = [];
-        foreach ($users as $user) { //发起人
-            $result[$user['username']] = [];
-            foreach ($users as $user2) { //支付人
-                if ($user['id'] === $user2['id']) {
+        foreach ($users as $user1) {
+            foreach ($users as $user2) {
+                if ($user1['id'] >= $user2['id']) {
                     continue;
                 }
-                $totalPrice = (new Item())->where('userid', $user2['id'])->where('paid', 0)->where('initiator', $user['id'])->sum('amount');
-                if ($totalPrice == 0) {
-                    continue;
+                $totalPrice1 = (new Item())->where('userid', $user2['id'])->where('paid', 0)->where('initiator', $user1['id'])->sum('amount');
+                $totalPrice2 = (new Item())->where('userid', $user1['id'])->where('paid', 0)->where('initiator', $user2['id'])->sum('amount');
+                if ($totalPrice1 > $totalPrice2) {
+                    $result[$user2['username']][$user1['username']] = $totalPrice1 - $totalPrice2;
+                } else {
+                    $result[$user1['username']][$user2['username']] = $totalPrice2 - $totalPrice1;
                 }
-                $result[$user['username']][$user2['username']] = $totalPrice;
             }
         }
         return $result;
