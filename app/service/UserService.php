@@ -37,30 +37,53 @@ class UserService extends Service
 
     public function getBestPay(): array
     {
-        $users = Db::table('user')->field('id, username')->select();
-        $userUnpaidAmounts = [];
-        $result = [];
-        foreach ($users as $user) {
-            $userUnpaidAmounts[$user['id']] = (new Item())->where('userid', $user['id'])->where('paid', 0)->sum('amount');
+        $users = Db::table('user')->field('id, username')->select()->toArray();
+        $users = array_column($users, 'username', 'id');
+        $userUnpaid = [];
+        // 初始化空数组
+        foreach ($users as $payer_id => $payer) {
+            foreach ($users as $payee_id => $payee) {
+                if ($payer_id === $payee_id) {
+                    continue;
+                }
+                $userUnpaid[$payer_id][$payee_id] = 0;
+            }
         }
-        foreach ($users as $user1) {
-            foreach ($users as $user2) {
-                if ($user1['id'] >= $user2['id']) {
+        // 获取所有未支付订单
+        $unpaid = (new Item())->where('paid', 0)->field(['userid, amount, initiator'])->select();
+        foreach ($unpaid as $item) {
+            $userUnpaid[$item->userid][$item->initiator] += $item->amount;
+        }
+        // 抵消付款人和收款人
+        foreach ($users as $payer_id => $payer) {
+            foreach ($users as $payee_id => $payee) {
+                if ($payer_id >= $payee_id) {
                     continue;
                 }
-                $totalPrice1 = $userUnpaidAmounts[$user1['id']];
-                $totalPrice2 = $userUnpaidAmounts[$user2['id']];
-                if ($totalPrice1 - $totalPrice2 == 0) {
-                    continue;
-                }
-                if ($totalPrice1 > $totalPrice2) {
-                    $result[$user2['username']][$user1['username']] = $totalPrice1 - $totalPrice2;
-                } else {
-                    $result[$user1['username']][$user2['username']] = $totalPrice2 - $totalPrice1;
+                $diff = $userUnpaid[$payer_id][$payee_id] - $userUnpaid[$payee_id][$payer_id];
+                match (true) {
+                    $diff < 0 => [
+                        $userUnpaid[$payee_id][$payer_id] -= $userUnpaid[$payer_id][$payee_id],
+                    ],
+                    $diff > 0 => [
+                        $userUnpaid[$payer_id][$payee_id] -= $userUnpaid[$payee_id][$payer_id],
+                    ],
+                    default => [
+                        $userUnpaid[$payer_id][$payee_id] = 0,
+                    ],
+                };
+                $userUnpaid[$payee_id][$payer_id] = 0;
+            }
+        }
+        $result = [];
+        // 使用用户名替换用户ID，并去除0值
+        foreach ($userUnpaid as $payer_id => $payer) {
+            foreach ($payer as $payee_id => $amount) {
+                if ($amount !== 0) {
+                    $result[$users[$payer_id]][$users[$payee_id]] = $amount;
                 }
             }
         }
-        $time_end = microtime(true);
         return $result;
     }
 }
