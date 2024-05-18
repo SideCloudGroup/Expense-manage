@@ -1,6 +1,6 @@
 {include file="/user/header"}
 
-<title>未支付项目</title>
+<title>未支付的金额</title>
 <div class="page">
     <div class="page-wrapper">
         <div class="page-header d-print-none">
@@ -8,7 +8,7 @@
                 <div class="row g-2 align-items-center">
                     <div class="card">
                         <div class="card-header">
-                            <h3 class="card-title">项目列表</h3>
+                            <h3 class="card-title">我需要支付的项目(按用户)</h3>
                         </div>
                         <div class="card-body">
                             <div class="table-responsive">

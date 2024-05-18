@@ -23,7 +23,7 @@ class AdminController extends BaseController
 
     public function user(Request $request): View
     {
-        $users = (new User())->select();
+        $users = (new User())->field('id,username')->select();
         return view('/admin/user', ['users' => $users]);
     }
 

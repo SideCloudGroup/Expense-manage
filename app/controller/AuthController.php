@@ -24,7 +24,7 @@ class AuthController extends BaseController
             if (password_verify($request->param('password'), $user->password)) {
                 Session::set('userid', $user->id);
                 app()->cookieService->setCookie($user->id);
-                return json(['ret' => 0, 'msg' => '登录成功'])->header(['HX-Redirect' => '/']);
+                return json(['ret' => 1, 'msg' => '登录成功'])->header(['HX-Redirect' => '/']);
             } else {
                 return json(['ret' => 0, 'msg' => '密码错误']);
             }

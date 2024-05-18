@@ -9,9 +9,10 @@
                     <div class="card">
                         <div class="card-header">
                             <h3 class="card-title">项目列表</h3>
-                        </div>
+                         </div>
                         <div class="card-body">
-                            <table class="table table-striped table-nowrap">
+                            <div class="table-responsive">
+                                <table class="table table-transparent">
                                 <thead>
                                 <tr>
                                     <th>#</th>

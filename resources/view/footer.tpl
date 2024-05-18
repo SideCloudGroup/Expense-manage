@@ -50,10 +50,6 @@
 
 <script>
     htmx.on("htmx:afterRequest", function (evt) {
-        if (evt.detail.xhr.getResponseHeader('HX-Redirect')) {
-            return;
-        }
-
         let res = JSON.parse(evt.detail.xhr.response);
         let successDialog = new bootstrap.Modal(document.getElementById('success-dialog'));
         let failDialog = new bootstrap.Modal(document.getElementById('fail-dialog'));
@@ -66,8 +62,16 @@
             failDialog.show();
         }
 
+        if (evt.detail.xhr.getResponseHeader('HX-Redirect')) {
+            setTimeout(function () {
+                location.href = evt.detail.xhr.getResponseHeader('HX-Redirect');
+            }, 2000);
+        }
+
         if (evt.detail.xhr.getResponseHeader('HX-Refresh')) {
-            location.reload();
+            setTimeout(function () {
+                location.reload();
+            }, 2000);
         }
     });
 </script>

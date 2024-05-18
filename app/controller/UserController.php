@@ -5,7 +5,6 @@ namespace app\controller;
 
 use app\BaseController;
 use app\model\Item;
-use app\model\User;
 use think\exception\ValidateException;
 use think\facade\Db;
 use think\facade\Session;
@@ -17,42 +16,48 @@ class UserController extends BaseController
 {
     public function invoice(Request $request): View
     {
-        $user = (new User())->where('id', Session::get('userid'))->findOrEmpty();
-        if ($user->isEmpty()) {
-            Session::delete('userid');
-            return view('/auth');
+        $user = app()->userService->getUser();
+        $items = Db::table('item')
+            ->join('user', 'item.initiator = user.id')
+            ->where('item.userid', Session::get('userid'))
+            ->order('item.paid')
+            ->field('item.id,user.username,item.description,item.amount,item.paid,item.created_at')
+            ->select();
+        $totalPricePaid = 0;
+        $totalPriceUnpaid = 0;
+        foreach ($items as $item) {
+            if ($item['paid'] === 1) {
+                $totalPricePaid += $item['amount'];
+            } else {
+                $totalPriceUnpaid += $item['amount'];
+            }
         }
-        $items = Db::table('item')->join('user', 'item.initiator = user.id')->where('item.userid', Session::get('userid'))->field('item.id,user.username,item.description,item.amount,item.paid,item.created_at')->select();
-        $totalPricePaid = (new Item())->where('userid', Session::get('userid'))->where('paid', 1)->sum('amount');
-        $totalPriceUnpaid = (new Item())->where('userid', Session::get('userid'))->where('paid', 0)->sum('amount');
         $totalPrice = $totalPricePaid + $totalPriceUnpaid;
         return view('/user/invoice', ['username' => $user->username, 'items' => $items, 'totalPrice' => $totalPrice, 'totalPricePaid' => $totalPricePaid, 'totalPriceUnpaid' => $totalPriceUnpaid]);
     }
 
     public function unpaid(Request $request): View
     {
-        // 以用户为单位，展示未支付的账单
-        $user = (new User())->where('id', Session::get('userid'))->findOrEmpty();
-        if ($user->isEmpty()) {
-            Session::delete('userid');
-            return view('/auth');
-        }
-        $users = Db::table('user')->field('id, username')->select();
+        $transactions = (new Item())->where('paid', 0)->where('userid', Session::get('userid'))->field(['amount, initiator'])->select();
         $result = [];
-        foreach ($users as $user) {
-            $items = (new Item())->where('userid', Session::get('userid'))->where('paid', 0)->where('initiator', $user['id'])->findOrEmpty();
-            if ($items->isEmpty()) {
-                continue;
+        $amounts = [];
+        foreach ($transactions as $transaction) {
+            if (! isset($amounts[$transaction->initiator])) {
+                $amounts[$transaction->initiator] = 0;
             }
-            $totalPrice = (new Item())->where('userid', Session::get('userid'))->where('paid', 0)->where('initiator', $user['id'])->sum('amount');
-            $result[] = ['username' => $user['username'], 'items' => $items, 'totalPrice' => $totalPrice];
+            $amounts[$transaction->initiator] += $transaction->amount;
+        }
+        $users = Db::table('user')->field('id, username')->select()->toArray();
+        $users = array_column($users, 'username', 'id');
+        foreach ($amounts as $userId => $amount) {
+            $result[] = ['username' => $users[$userId], 'totalPrice' => $amount];
         }
         return view('/user/unpaid', ['results' => $result]);
     }
 
     public function addItem(Request $request): View
     {
-        $users = (new User())->select();
+        $users = $this->app->userService->getUserList();
         return view('/user/addItem', ['users' => $users]);
     }
 
