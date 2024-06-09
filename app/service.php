@@ -1,6 +1,7 @@
 <?php
 
 use app\service\CookieService;
+use app\service\CurrencyService;
 use app\service\UserService;
 
 // 系统服务定义文件
@@ -8,4 +9,5 @@ use app\service\UserService;
 return [
     UserService::class,
     CookieService::class,
+    CurrencyService::class,
 ];

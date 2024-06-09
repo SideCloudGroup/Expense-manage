@@ -9,7 +9,7 @@
                 <li class="nav-item">
                     <a class="nav-link" href="/">
                         <span class="nav-link-icon d-md-none d-lg-inline-block">
-                            <i class="fas fa-house"></i>
+                            <i class="ti ti-home"></i>
                         </span>
                         <span class="nav-link-title">
                             首页
@@ -19,7 +19,7 @@
                 <li class="nav-item">
                     <a class="nav-link" href="/user/item/add">
                         <span class="nav-link-icon d-md-none d-lg-inline-block">
-                            <i class="fas fa-plus"></i>
+                            <i class="ti ti-credit-card-pay"></i>
                         </span>
                         <span class="nav-link-title">
                             发起收款
@@ -29,7 +29,7 @@
                 <li class="nav-item">
                     <a class="nav-link" href="/user/item">
                         <span class="nav-link-icon d-md-none d-lg-inline-block">
-                            <i class="fas fa-file-invoice"></i>
+                            <i class="ti ti-list-check"></i>
                         </span>
                         <span class="nav-link-title">
                             我创建的收款
@@ -39,7 +39,7 @@
                 <li class="nav-item">
                     <a class="nav-link" href="/user/payment">
                         <span class="nav-link-icon d-md-none d-lg-inline-block">
-                            <i class="fas fa-money-bill"></i>
+                            <i class="ti ti-file-dollar"></i>
                         </span>
                         <span class="nav-link-title">
                             需支付的款项
@@ -49,10 +49,20 @@
                 <li class="nav-item">
                     <a class="nav-link" href="/user/unpaid">
                         <span class="nav-link-icon d-md-none d-lg-inline-block">
-                            <i class="fas fa-money-bill"></i>
+                            <i class="ti ti-calculator"></i>
                         </span>
                         <span class="nav-link-title">
                             查看总未支付
+                        </span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/user/currency">
+                        <span class="nav-link-icon d-md-none d-lg-inline-block">
+                            <i class="ti ti-coins"></i>
+                        </span>
+                        <span class="nav-link-title">
+                            查询当前汇率
                         </span>
                     </a>
                 </li>

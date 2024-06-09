@@ -58,7 +58,8 @@ class UserController extends BaseController
     public function addItem(Request $request): View
     {
         $users = $this->app->userService->getUserList();
-        return view('/user/addItem', ['users' => $users]);
+        $currencies = $this->app->currencyService->getExchangeRate();
+        return view('/user/addItem', ['users' => $users, 'currencies' => $currencies]);
     }
 
     public function processAddItem(Request $request): Json
@@ -68,16 +69,24 @@ class UserController extends BaseController
             validate(\app\validate\Item::class)->check([
                 'description' => $request->param('description'),
                 'amount' => $request->param('amount'),
-                'users' => $users
+                'users' => $users,
+                'unit' => $request->param('unit'),
             ]);
         } catch (ValidateException $e) {
             return json(['ret' => 0, 'msg' => $e->getError()]);
+        }
+        $baseCurrency = app()->currencyService->getDefaultCurrency();
+        $exchangeRate = app()->currencyService->getExchangeRate();
+        if ($request->param('unit') === $baseCurrency) {
+            $amount = $request->param('amount');
+        } else {
+            $amount = $request->param('amount') / $exchangeRate[$request->param('unit')];
         }
         foreach ($users as $user) {
             $item = new Item();
             $item->userid = $user;
             $item->description = $request->param('description');
-            $item->amount = $request->param('amount');
+            $item->amount = $amount;
             $item->paid = (int) $user === (int) Session::get('userid');
             $item->created_at = date('Y-m-d H:i:s');
             $item->initiator = session('userid');
@@ -109,5 +118,15 @@ class UserController extends BaseController
         $item->paid = $request->param('paid');
         $item->save();
         return json(['ret' => 1, 'msg' => '更新成功'])->header(['HX-Refresh' => 'true']);
+    }
+
+    public function currency(Request $request): View
+    {
+        $baseCurrency = app()->currencyService->getDefaultCurrency();
+        $exchangeRate = app()->currencyService->getExchangeRate();
+        foreach ($exchangeRate as $currency => $rate) {
+            $exchangeRate[$currency] = round(1 / $rate, 3);
+        }
+        return view('/user/currency', ['baseCurrency' => $baseCurrency, 'currencies' => $exchangeRate]);
     }
 }

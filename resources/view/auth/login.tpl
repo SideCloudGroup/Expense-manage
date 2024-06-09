@@ -9,6 +9,7 @@
                 <h2 class="card-title text-center mb-4">登录</h2>
                 <div class="mb-2">
                     <label class="form-label">
+                        <i class="ti ti-user-hexagon"></i>
                         用户名
                     </label>
                     <div class="input-group input-group-flat">
@@ -17,6 +18,7 @@
                 </div>
                 <div class="mb-2">
                     <label class="form-label">
+                        <i class="ti ti-password"></i>
                         密码
                     </label>
                     <div class="input-group input-group-flat">

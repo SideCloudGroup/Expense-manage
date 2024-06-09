@@ -44,6 +44,16 @@
                             <input autocomplete="off" class="form-control" id="totalamount" type="number">
                         </div>
                     </div>
+                    <div class="col-sm-12 col-lg-12">
+                        <div class="input-group mb-3">
+                            <span class="input-group-text">货币单位</span>
+                            <select class="form-select" id="unit" name="unit">
+                                {volist name="currencies" id="currency"}
+                                    <option value="{$key}">{$key}</option>
+                                {/volist}
+                            </select>
+                        </div>
+                    </div>
                     <button class="btn btn-primary btn-block btn-save"
                             type="submit"
                             hx-post="/user/item/add"
@@ -53,7 +63,8 @@
                             hx-vals='js:{
                                 "description": document.getElementById("description").value,
                                 "amount": document.getElementById("amount").value,
-                                "users": JSON.stringify(getSelectedUsers())
+                                "users": JSON.stringify(getSelectedUsers()),
+                                "unit": document.getElementById("unit").value,
                             }'>
                         保存
                     </button>

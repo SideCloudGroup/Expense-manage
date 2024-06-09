@@ -17,6 +17,7 @@ class Item extends Validate
         'description' => 'require',
         'amount' => 'require|float',
         'users' => 'require|array',
+        'unit' => 'require|string',
     ];
 
     protected $message = [
@@ -25,5 +26,7 @@ class Item extends Validate
         'amount.float' => '金额必须为数字',
         'users.require' => '用户不能为空',
         'users.array' => '用户必须为数组',
+        'unit.require' => '单位不能为空',
+        'unit.string' => '单位必须为字符串',
     ];
 }

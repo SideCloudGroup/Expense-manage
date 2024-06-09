@@ -9,7 +9,7 @@
                 <li class="nav-item">
                     <a class="nav-link" href="/admin">
                         <span class="nav-link-icon d-md-none d-lg-inline-block">
-                            <i class="fas fa-house"></i>
+                            <i class="ti ti-home"></i>
                         </span>
                         <span class="nav-link-title">
                             首页
@@ -19,7 +19,7 @@
                 <li class="nav-item">
                     <a class="nav-link" href="/admin/user">
                         <span class="nav-link-icon d-md-none d-lg-inline-block">
-                            <i class="fas fa-user"></i>
+                            <i class="ti ti-users"></i>
                         </span>
                         <span class="nav-link-title">
                             用户列表
@@ -29,7 +29,7 @@
                 <li class="nav-item">
                     <a class="nav-link" href="/admin/item">
                         <span class="nav-link-icon d-md-none d-lg-inline-block">
-                            <i class="fas fa-file-invoice"></i>
+                            <i class="ti ti-receipt"></i>
                         </span>
                         <span class="nav-link-title">
                             项目管理
@@ -39,7 +39,7 @@
                 <li class="nav-item">
                     <a class="nav-link" href="/admin/total">
                         <span class="nav-link-icon d-md-none d-lg-inline-block">
-                            <i class="fas fa-file-invoice"></i>
+                            <i class="ti ti-receipt-2"></i>
                         </span>
                         <span class="nav-link-title">
                             计算最优待支付

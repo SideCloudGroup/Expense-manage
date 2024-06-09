@@ -33,13 +33,18 @@
                                             <td>
                                                 {if $item.paid}
                                                     <span class="badge bg-green text-green-fg btn"
-                                                          hx-post="/user/item/{$item.id}" hx-trigger="click"
-                                                          hx-vals='{"paid": 0}'>已支付</span>
+                                                          hx-post="/user/item/{$item.id}"
+                                                          hx-trigger="click"
+                                                          hx-vals='{"paid": 0}'>
+                                                        已支付
+                                                    </span>
                                                 {else}
                                                     <span class="badge bg-red text-red-fg btn"
                                                           hx-post="/user/item/{$item.id}"
                                                           hx-trigger="click"
-                                                          hx-vals='{"paid": 1}'>未支付</span>
+                                                          hx-vals='{"paid": 1}'>
+                                                        未支付
+                                                    </span>
                                                 {/if}
                                             </td>
                                             <td>{$item.created_at}</td>

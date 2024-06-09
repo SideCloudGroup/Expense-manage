@@ -29,6 +29,7 @@ Route::group('/user', function () {
     Route::post('/item/add', 'user/processAddItem');
     Route::post('/item/:id', 'user/updateItemStatus');
     Route::get('/item', 'user/itemList');
+    Route::get('/currency', 'user/currency');
 })->middleware(User::class);
 
 Route::group('/admin', function () {
