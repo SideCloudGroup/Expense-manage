@@ -22,7 +22,10 @@
                             </div>
                             <div class="form-footer">
                                 <button class="btn btn-primary w-100"
-                                        hx-post="/admin/user" hx-swap="none" hx-vals='js:{
+                                        hx-post="/admin/user"
+                                        hx-swap="none"
+                                        hx-disabled-elt="button"
+                                        hx-vals='js:{
                                         username: document.getElementById("username").value,
                                         password: document.getElementById("password").value
                                         }'>

@@ -8,6 +8,7 @@
 // +----------------------------------------------------------------------
 // | Author: liu21st <liu21st@gmail.com>
 // +----------------------------------------------------------------------
+use app\middleware\Admin;
 use app\middleware\Auth;
 use app\middleware\User;
 use think\facade\Route;
@@ -38,4 +39,6 @@ Route::group('/admin', function () {
     Route::post('/item/:id', 'admin/updateItemStatus');
     Route::get('/item', 'admin/itemList');
     Route::get('/total', 'admin/bestPay');
-});
+    Route::get('/login', 'admin/loginPage');
+    Route::post('/login', 'admin/loginHandler');
+})->middleware(Admin::class);

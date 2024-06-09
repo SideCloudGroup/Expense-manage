@@ -9,8 +9,22 @@
                     <div class="card">
                         <div class="card-header">
                             <h3 class="card-title">我需要支付的项目(按用户)</h3>
+
                         </div>
                         <div class="card-body">
+                            <div class="alert alert-info" role="alert">
+                                <div class="d-flex">
+                                    <div>
+                                        <i class="ti ti-alert-circle"></i>
+                                    </div>
+                                    <div>
+                                        <h4 class="alert-title">提示</h4>
+                                        <div class="text-secondary">
+                                            此页面的结果为优化前结果，仅供查看和对照。优化后的最终结果会由管理员通知。
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                             <div class="table-responsive">
                                 <table class="table table-transparent">
                                     <thead>

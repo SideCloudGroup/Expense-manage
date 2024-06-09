@@ -8,6 +8,9 @@
                 <div class="row">
                     <div class="mb-3">
                         <label class="form-label">选择用户</label>
+                        <div class="mb-2">已选人数:
+                            <span id="selectedUserCount">0</span>
+                        </div>
                         <div class="form-selectgroup">
                             {volist name="users" id="user"}
                                 <label class="form-selectgroup-item">
@@ -18,19 +21,24 @@
                             {/volist}
                         </div>
                     </div>
+                    <hr>
                     <div class="col-sm-12 col-lg-12">
                         <div class="input-group mb-3">
                             <span class="input-group-text">名称</span>
                             <input autocomplete="off" class="form-control" id="description" type="text">
                         </div>
                     </div>
-                    <div class="col-sm-12 col-lg-6">
+                    <hr>
+                    <div class="col-sm-12 col-lg-5">
                         <div class="input-group mb-3">
                             <span class="input-group-text">人均金额</span>
                             <input autocomplete="off" class="form-control" id="amount" type="number">
                         </div>
                     </div>
-                    <div class="col-sm-12 col-lg-6">
+                    <div class="col-sm-12 col-lg-2 text-center">
+                        <span>--OR--</span>
+                    </div>
+                    <div class="col-sm-12 col-lg-5">
                         <div class="input-group mb-3">
                             <span class="input-group-text">总金额</span>
                             <input autocomplete="off" class="form-control" id="totalamount" type="number">
@@ -41,6 +49,7 @@
                             hx-post="/user/item/add"
                             hx-trigger="click"
                             hx-swap="none"
+                            hx-disabled-elt="button"
                             hx-vals='js:{
                                 "description": document.getElementById("description").value,
                                 "amount": document.getElementById("amount").value,
@@ -66,6 +75,7 @@
         } else {
             amountInput.value = '';
         }
+        updateSelectedUserCount(userCount); // 更新已选用户数量
     }
 
     function getSelectedUsers() {
@@ -79,10 +89,16 @@
         return users;
     }
 
+    function updateSelectedUserCount(count) {
+        var userCountElement = document.getElementById('selectedUserCount');
+        userCountElement.textContent = count;
+    }
+
     document.getElementById('totalamount').addEventListener('input', updateAmount);
 
     document.querySelectorAll('input[name="users[]"]').forEach(function (checkbox) {
         checkbox.addEventListener('change', updateAmount);
     });
+
 </script>
 {include file="/footer"}

@@ -21,6 +21,20 @@ class AdminController extends BaseController
         return view('/admin/index', ['totalPrice' => $totalPrice, 'totalPricePaid' => $totalPricePaid, 'totalPriceUnpaid' => $totalPriceUnpaid]);
     }
 
+    public function loginPage(Request $request): View
+    {
+        return view('/admin/login');
+    }
+
+    public function loginHandler(Request $request): Json
+    {
+        if ($request->param('password') !== env('APP.ADMIN_PASSWORD')) {
+            return json(['ret' => 0, 'msg' => '管理员密码错误']);
+        }
+        session('admin', true);
+        return json(['ret' => 1, 'msg' => '登录成功'])->header(['HX-Redirect' => '/admin']);
+    }
+
     public function user(Request $request): View
     {
         $users = (new User())->field('id,username')->select();
@@ -33,7 +47,7 @@ class AdminController extends BaseController
         $user->username = $request->param('username');
         $user->password = password_hash($request->param('password'), PASSWORD_ARGON2ID);
         $user->save();
-        return json(['ret' => 1, 'msg' => 'User added'])->header(['HX-Refresh' => 'true']);
+        return json(['ret' => 1, 'msg' => '用户已添加'])->header(['HX-Refresh' => 'true']);
     }
 
     public function itemList(Request $request): View
