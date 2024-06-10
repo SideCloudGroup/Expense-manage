@@ -19,7 +19,7 @@
                 <li class="nav-item">
                     <a class="nav-link" href="/user/item/add">
                         <span class="nav-link-icon d-md-none d-lg-inline-block">
-                            <i class="ti ti-credit-card-pay"></i>
+                            <i class="ti ti-cash-register"></i>
                         </span>
                         <span class="nav-link-title">
                             发起收款

@@ -1,4 +1,4 @@
-{include file="/user/header"}
+{include file="user/header"}
 
 <title>未支付的金额</title>
 <div class="page">
@@ -8,43 +8,29 @@
                 <div class="row g-2 align-items-center">
                     <div class="card">
                         <div class="card-header">
-                            <h3 class="card-title">我需要支付的项目(按用户)</h3>
-
+                            <h3 class="card-title">未支付的金额</h3>
                         </div>
                         <div class="card-body">
-                            <div class="alert alert-info" role="alert">
-                                <div class="d-flex">
-                                    <div>
-                                        <i class="ti ti-alert-circle"></i>
-                                    </div>
-                                    <div>
-                                        <h4 class="alert-title">提示</h4>
-                                        <div class="text-secondary">
-                                            此页面的结果为优化前结果，仅供查看和对照。优化后的最终结果会由管理员通知。
+                            {if empty($result)}
+                                <div class="alert alert-important alert-success alert-dismissible" role="alert">
+                                    <div class="d-flex">
+                                        <div>
+                                            <i class="ti ti-check"></i>
+                                        </div>
+                                        <div>
+                                            没有需要支付的款项
                                         </div>
                                     </div>
+                                    <a class="btn-close" data-bs-dismiss="alert" aria-label="close"></a>
                                 </div>
-                            </div>
-                            <div class="table-responsive">
-                                <table class="table table-transparent">
-                                    <thead>
-                                    <tr>
-                                        <th>用户</th>
-                                        <th>金额</th>
-                                    </tr>
-                                    </thead>
-                                    <tbody>
-                                    {volist name="results" id="result"}
-                                        <tr>
-                                            <td>{$result.username}</td>
-                                            <td>{$result.totalPrice}</td>
-                                        </tr>
+                            {else}
+                                <ul>
+                                    {volist name="result" id="item"}
+                                        <li>向 {$key} 支付￥ {$item}  </li>
                                     {/volist}
-                                    </tbody>
-                                </table>
-                            </div>
+                                </ul>
+                            {/if}
                         </div>
-
                     </div>
                 </div>
             </div>

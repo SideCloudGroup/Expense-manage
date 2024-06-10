@@ -38,21 +38,10 @@ class UserController extends BaseController
 
     public function unpaid(Request $request): View
     {
-        $transactions = (new Item())->where('paid', 0)->where('userid', Session::get('userid'))->field(['amount, initiator'])->select();
-        $result = [];
-        $amounts = [];
-        foreach ($transactions as $transaction) {
-            if (! isset($amounts[$transaction->initiator])) {
-                $amounts[$transaction->initiator] = 0;
-            }
-            $amounts[$transaction->initiator] += $transaction->amount;
-        }
-        $users = Db::table('user')->field('id, username')->select()->toArray();
-        $users = array_column($users, 'username', 'id');
-        foreach ($amounts as $userId => $amount) {
-            $result[] = ['username' => $users[$userId], 'totalPrice' => $amount];
-        }
-        return view('/user/unpaid', ['results' => $result]);
+        $result = app()->userService->getBestPay();
+        $user = app()->userService->getUser();
+        $result = $result[$user->username] ?? [];
+        return view('/user/unpaid', ['result' => $result]);
     }
 
     public function addItem(Request $request): View
