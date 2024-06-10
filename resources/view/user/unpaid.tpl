@@ -15,13 +15,12 @@
                                 <div class="alert alert-important alert-success alert-dismissible" role="alert">
                                     <div class="d-flex">
                                         <div>
-                                            <i class="ti ti-check"></i>
+                                            <i class="fa-regular fa-circle-check"></i>
                                         </div>
                                         <div>
                                             没有需要支付的款项
                                         </div>
                                     </div>
-                                    <a class="btn-close" data-bs-dismiss="alert" aria-label="close"></a>
                                 </div>
                             {else}
                                 <ul>
