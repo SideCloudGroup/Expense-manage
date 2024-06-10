@@ -75,6 +75,7 @@ class AdminController extends BaseController
     public function bestPay(Request $request): View
     {
         $bestPay = $this->app->userService->getBestPay();
-        return view('/admin/bestpay', ['users' => $bestPay]);
+        $userStat = $this->app->userService->getUserStat();
+        return view('/admin/bestpay', ['bestPayAll' => $bestPay[1], 'bestPayFinal' => $bestPay[0], 'userStat' => $userStat]);
     }
 }

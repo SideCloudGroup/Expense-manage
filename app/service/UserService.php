@@ -49,6 +49,30 @@ class UserService extends Service
         return ['ret' => 1, 'data' => $userDetails, 'totalPrice' => $totalPrice];
     }
 
+    public function addItem(int $userID, string $description, float $amount, int $initiator): bool
+    {
+        $item = new Item();
+        $item->userid = $userID;
+        $item->description = $description;
+        $item->amount = $amount;
+        $item->paid = $userID === $initiator;
+        $item->created_at = date('Y-m-d H:i:s');
+        $item->initiator = $initiator;
+        return $item->save();
+    }
+
+    public function getUserStat(): array
+    {
+        $users = Db::table('user')->field('id, username')->select()->toArray();
+        $users = array_column($users, 'username', 'id');
+        $userStat = [];
+        foreach ($users as $id => $username) {
+            $userStat[$username]['in'] = (new Item())->where('initiator', $id)->where('paid', 0)->sum('amount');
+            $userStat[$username]['out'] = (new Item())->where('userid', $id)->where('paid', 0)->sum('amount');
+        }
+        return $userStat;
+    }
+
     public function getBestPay(): array
     {
         $users = Db::table('user')->field('id, username')->select()->toArray();
@@ -89,7 +113,6 @@ class UserService extends Service
                 };
             }
         }
-
         // 使用用户名替换用户ID，并去除0值
         $result = [];
         foreach ($tmpResult as $payer_id => $payer) {
@@ -99,6 +122,69 @@ class UserService extends Service
                 }
             }
         }
-        return $result;
+        $stage1 = $result;
+        // 进一步优化
+        $debtsDict = $result;
+        $balance = [];
+
+        // 计算每个人的净余额
+        foreach ($debtsDict as $debtor => $creditors) {
+            foreach ($creditors as $creditor => $amount) {
+                if (! isset($balance[$debtor])) {
+                    $balance[$debtor] = 0;
+                }
+                if (! isset($balance[$creditor])) {
+                    $balance[$creditor] = 0;
+                }
+                $balance[$debtor] -= $amount;
+                $balance[$creditor] += $amount;
+            }
+        }
+
+        // 分离出正负余额
+        $creditors = [];
+        $debtors = [];
+        foreach ($balance as $person => $bal) {
+            if ($bal > 0) {
+                $creditors[] = [$person, $bal];
+            } elseif ($bal < 0) {
+                $debtors[] = [$person, -$bal];
+            }
+        }
+
+        // 优化支付方案
+        $optimizedDebts = [];
+        $i = 0;
+        $j = 0;
+        while ($i < count($creditors) && $j < count($debtors)) {
+            list($creditor, $credAmount) = $creditors[$i];
+            list($debtor, $debtAmount) = $debtors[$j];
+
+            if ($credAmount > $debtAmount) {
+                $optimizedDebts[] = [$debtor, $creditor, $debtAmount];
+                $creditors[$i][1] -= $debtAmount;
+                $j++;
+            } elseif ($credAmount < $debtAmount) {
+                $optimizedDebts[] = [$debtor, $creditor, $credAmount];
+                $debtors[$j][1] -= $credAmount;
+                $i++;
+            } else {
+                $optimizedDebts[] = [$debtor, $creditor, $credAmount];
+                $i++;
+                $j++;
+            }
+        }
+
+        // 转换为字典形式
+        $optimizedDict = [];
+        foreach ($optimizedDebts as $debt) {
+            list($debtor, $creditor, $amount) = $debt;
+            if (! isset($optimizedDict[$debtor])) {
+                $optimizedDict[$debtor] = [];
+            }
+            $optimizedDict[$debtor][$creditor] = round($amount, 2);
+        }
+
+        return [$optimizedDict, $stage1];
     }
 }

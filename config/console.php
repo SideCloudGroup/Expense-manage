@@ -4,8 +4,5 @@
 // +----------------------------------------------------------------------
 return [
     // 指令定义
-    'commands' => [
-        'cleanLog' => 'app\command\CleanLog',
-        'register' => 'app\command\Register',
-    ],
+    'commands' => [],
 ];

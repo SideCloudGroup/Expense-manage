@@ -38,17 +38,10 @@ class UserController extends BaseController
 
     public function unpaid(Request $request): View
     {
-        $result = app()->userService->getBestPay();
+        $result = app()->userService->getBestPay()[0];
         $user = app()->userService->getUser();
         $result = $result[$user->username] ?? [];
         return view('/user/unpaid', ['result' => $result]);
-    }
-
-    public function addItem(Request $request): View
-    {
-        $users = $this->app->userService->getUserList();
-        $currencies = $this->app->currencyService->getExchangeRate();
-        return view('/user/addItem', ['users' => $users, 'currencies' => $currencies]);
     }
 
     public function processAddItem(Request $request): Json
@@ -72,16 +65,16 @@ class UserController extends BaseController
             $amount = $request->param('amount') / $exchangeRate[$request->param('unit')];
         }
         foreach ($users as $user) {
-            $item = new Item();
-            $item->userid = $user;
-            $item->description = $request->param('description');
-            $item->amount = $amount;
-            $item->paid = (int) $user === (int) Session::get('userid');
-            $item->created_at = date('Y-m-d H:i:s');
-            $item->initiator = session('userid');
-            $item->save();
+            app()->userService->addItem((int) $user, $request->param('description'), $amount, session('userid'));
         }
         return json(['ret' => 1, 'msg' => '添加成功'])->header(['HX-Refresh' => 'true']);
+    }
+
+    public function addItem(Request $request): View
+    {
+        $users = $this->app->userService->getUserList();
+        $currencies = $this->app->currencyService->getExchangeRate();
+        return view('/user/addItem', ['users' => $users, 'currencies' => $currencies]);
     }
 
     public function payment(Request $request): View
