@@ -22,8 +22,8 @@
                                                         <div class="col">
                                                             <div class="card-title">{$key}</div>
                                                             <div class="card-subtitle">
-                                                                合计支出：￥ {$userStat[$key]['out']} |
-                                                                未结收入：￥ {$userStat[$key]['in']}</div>
+                                                                合计支出：{:getUnitSign()} {$userStat[$key]['out']} |
+                                                                未结收入：{:getUnitSign()} {$userStat[$key]['in']}</div>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -32,7 +32,7 @@
                                             <div class="card-body">
                                                 <ul>
                                                     {volist name="user" id="item"}
-                                                        <li>向 {$key} 支付￥ {$item}  </li>
+                                                        <li>向 {$key} 支付{:getUnitSign()} {$item}  </li>
                                                     {/volist}
                                                 </ul>
                                             </div>
@@ -57,7 +57,7 @@
                                             <div class="card-body">
                                                 <ul>
                                                     {volist name="user" id="item"}
-                                                        <li>向 {$key} 支付￥ {$item}  </li>
+                                                        <li>向 {$key} 支付{:getUnitSign()} {$item}  </li>
                                                     {/volist}
                                                 </ul>
                                             </div>

@@ -49,15 +49,15 @@
                                 {/volist}
                                 <tr>
                                     <td colspan="5" class="strong text-end">未支付</td>
-                                    <td class="text-end">￥ {$totalPriceUnpaid}</td>
+                                    <td class="text-end">{:getUnitSign()} {$totalPriceUnpaid}</td>
                                 </tr>
                                 <tr>
                                     <td colspan="5" class="strong text-end">已支付</td>
-                                    <td class="text-end">￥ {$totalPricePaid}</td>
+                                    <td class="text-end">{:getUnitSign()} {$totalPricePaid}</td>
                                 </tr>
                                 <tr>
                                     <td colspan="5" class="strong text-end">总计</td>
-                                    <td class="text-end">￥ {$totalPrice}</td>
+                                    <td class="text-end">{:getUnitSign()} {$totalPrice}</td>
                                 </tr>
                             </table>
                         </div>

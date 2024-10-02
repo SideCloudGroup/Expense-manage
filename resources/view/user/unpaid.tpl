@@ -25,7 +25,7 @@
                             {else}
                                 <ul>
                                     {volist name="result" id="item"}
-                                        <li>向 {$key} 支付￥ {$item}  </li>
+                                        <li>向 {$key} 支付{:getUnitSign()} {$item}  </li>
                                     {/volist}
                                 </ul>
                             {/if}

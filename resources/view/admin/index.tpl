@@ -6,13 +6,13 @@
         <h2 class="card-header">管理面板</h2>
         <ul class="list-group">
             <li class="list-group-item">
-                <b>未支付费用:</b> ￥ {$totalPriceUnpaid}
+                <b>未支付费用:</b> {:getUnitSign()} {$totalPriceUnpaid}
             </li>
             <li class="list-group-item">
-                <b>已支付费用:</b> ￥ {$totalPricePaid}
+                <b>已支付费用:</b> {:getUnitSign()} {$totalPricePaid}
             </li>
             <li class="list-group-item">
-                <b>总费用:</b> ￥ {$totalPrice}
+                <b>总费用:</b> {:getUnitSign()} {$totalPrice}
             </li>
         </ul>
     </div>
