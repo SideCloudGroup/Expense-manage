@@ -6,6 +6,7 @@ namespace app\controller;
 use app\BaseController;
 use app\model\Item;
 use think\exception\ValidateException;
+use think\facade\Cookie;
 use think\facade\Db;
 use think\facade\Session;
 use think\Request;
@@ -65,7 +66,7 @@ class UserController extends BaseController
             $amount = $request->param('amount') / $exchangeRate[$request->param('unit')];
         }
         foreach ($users as $user) {
-            app()->userService->addItem((int) $user, $request->param('description'), (float) $amount, session('userid'));
+            app()->userService->addItem((int)$user, $request->param('description'), (float)$amount, session('userid'));
         }
         return json(['ret' => 1, 'msg' => '添加成功'])->header(['HX-Refresh' => 'true']);
     }
@@ -110,5 +111,27 @@ class UserController extends BaseController
             $exchangeRate[$currency] = round(1 / $rate, 3);
         }
         return view('/user/currency', ['baseCurrency' => $baseCurrency, 'currencies' => $exchangeRate]);
+    }
+
+    public function logout(Request $request): Json
+    {
+        Session::delete('userid');
+        Session::delete('auth');
+        Cookie::delete('user');
+        return json(['ret' => 1, 'msg' => '登出成功'])->header(['HX-Redirect' => '/']);
+    }
+
+    public function profile(Request $request): View
+    {
+        $user = app()->userService->getUser();
+        return view('/user/profile', ['user' => $user]);
+    }
+
+    public function updateProfile(Request $request): Json
+    {
+        $user = app()->userService->getUser();
+        $user->username = $request->param('username');
+        $user->save();
+        return json(['ret' => 1, 'msg' => '更新成功'])->header(['HX-Refresh' => 'true']);
     }
 }

@@ -6,7 +6,7 @@
         </div>
         <div class="card card-md">
             <div class="card-body">
-                <h2 class="card-title text-center mb-4">登录</h2>
+                <h2 class="card-title text-center mb-4">用户登录</h2>
                 <div class="mb-2">
                     <label class="form-label">
                         <i class="fa-solid fa-user"></i>
@@ -27,7 +27,7 @@
                 </div>
                 <div class="form-footer">
                     <button class="btn btn-primary w-100"
-                            hx-post="/auth"
+                            hx-post="/auth/login"
                             hx-swap="none"
                             hx-disabled-elt="button"
                             hx-vals='js:{
@@ -39,6 +39,11 @@
                 </div>
             </div>
         </div>
+        {if env("APP.REGISTER_CODE")!=''}
+            <div class="text-center text-muted mt-3">
+                还没有账户？<a href="/auth/register" tabindex="-1">前往注册</a>
+            </div>
+        {/if}
     </div>
 </div>
 {include file="/footer"}

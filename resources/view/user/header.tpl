@@ -66,6 +66,28 @@
                         </span>
                     </a>
                 </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/user/profile">
+                        <span class="nav-link-icon d-md-none d-lg-inline-block">
+                            <i class="fa-solid fa-user"></i>
+                        </span>
+                        <span class="nav-link-title">
+                            个人信息
+                        </span>
+                    </a>
+                </li>
+            </ul>
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item">
+                    <button class="btn btn-danger" hx-get="/user/logout" hx-trigger="click" hx-target="body">
+                        <span class="nav-link-icon d-md-none d-lg-inline-block">
+                            <i class="fa-solid fa-sign-out-alt"></i>
+                        </span>
+                        <span class="nav-link-title">
+                            登出
+                        </span>
+                    </button>
+                </li>
             </ul>
         </div>
     </div>

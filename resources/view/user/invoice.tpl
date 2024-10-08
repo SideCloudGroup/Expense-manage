@@ -34,7 +34,7 @@
                                     <tr>
                                         <td class="text-center">{$item.id}</td>
                                         <td><p class="strong mb-1">{$item.description}</p></td>
-                                        <td class="text-end">{$item.amount}</td>
+                                        <td class="text-end">{:getUnitSign()}{$item.amount}</td>
                                         <td class="text-end">{$item.username}</td>
                                         {if $item.paid}
                                             <td class="text-end"><span

@@ -187,4 +187,27 @@ class UserService extends Service
 
         return [$optimizedDict, $stage1];
     }
+
+    public function updateUserProfile(int $id, string $username, string $password): array
+    {
+        $user = (new User())->where('id', $id)->findOrEmpty();
+        if ($user->isEmpty()) {
+            return array('ret' => 0, 'msg' => '未找到该用户');
+        }
+        # 检查用户名是否重复
+        if ($user->username != $username) {
+            # 检查用户名是否重复
+            $user_tmp = (new User())->where('username', $username)->findOrEmpty();
+            if (!$user_tmp->isEmpty()) {
+                return array('ret' => 0, 'msg' => '用户名已存在');
+            }
+            $user->username = $username;
+        }
+        # 更新密码
+        if ($password != '') {
+            $user->password = password_hash($password, PASSWORD_ARGON2ID);
+        }
+        $user->save();
+        return array('ret' => 1, 'msg' => '更新成功');
+    }
 }

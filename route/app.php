@@ -15,8 +15,10 @@ use think\facade\Route;
 
 
 Route::group('auth', function () {
-    Route::get('', 'auth/authPage');
-    Route::post('', 'auth/auth');
+    Route::get('login', 'auth/loginPage');
+    Route::post('login', 'auth/login');
+    Route::get('register', 'auth/registerPage');
+    Route::post('register', 'auth/register');
 })->middleware(Auth::class);
 
 Route::rule('/', 'user/invoice')->middleware(User::class);
@@ -30,6 +32,9 @@ Route::group('/user', function () {
     Route::post('/item/:id', 'user/updateItemStatus');
     Route::get('/item', 'user/itemList');
     Route::get('/currency', 'user/currency');
+    Route::get('/logout', 'user/logout');
+    Route::get('/profile', 'user/profile');
+    Route::post('/profile', 'user/updateProfile');
 })->middleware(User::class);
 
 Route::group('/admin', function () {
