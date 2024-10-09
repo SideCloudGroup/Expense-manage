@@ -5,6 +5,10 @@ namespace app\controller;
 
 use app\BaseController;
 use app\model\Item;
+use app\model\MFACredential;
+use app\service\MFA\FIDO;
+use app\service\MFA\TOTP;
+use app\service\MFA\WebAuthn;
 use think\exception\ValidateException;
 use think\facade\Cookie;
 use think\facade\Db;
@@ -12,6 +16,7 @@ use think\facade\Session;
 use think\Request;
 use think\response\Json;
 use think\response\View;
+use voku\helper\AntiXSS;
 
 class UserController extends BaseController
 {
@@ -21,7 +26,7 @@ class UserController extends BaseController
         $items = Db::table('item')
             ->join('user', 'item.initiator = user.id')
             ->where('item.userid', Session::get('userid'))
-            ->order('item.paid')
+            ->order(['item.paid', 'item.id'])
             ->field('item.id,user.username,item.description,item.amount,item.paid,item.created_at')
             ->select();
         $totalPricePaid = 0;
@@ -124,7 +129,15 @@ class UserController extends BaseController
     public function profile(Request $request): View
     {
         $user = app()->userService->getUser();
-        return view('/user/profile', ['user' => $user]);
+        $webauthnDevices = (new MFACredential())->where('userid', $user->id)->where('type', 'passkey')->select();
+        $totpDevices = (new MFACredential())->where('userid', $user->id)->where('type', 'totp')->select();
+        $fidoDevices = (new MFACredential())->where('userid', $user->id)->where('type', 'fido')->select();
+        return view('/user/profile', [
+            'user' => $user,
+            'webauthn_devices' => $webauthnDevices,
+            'totp_devices' => $totpDevices,
+            'fido_devices' => $fidoDevices,
+        ]);
     }
 
     public function updateProfile(Request $request): Json
@@ -133,5 +146,94 @@ class UserController extends BaseController
         $user->username = $request->param('username');
         $user->save();
         return json(['ret' => 1, 'msg' => '更新成功'])->header(['HX-Refresh' => 'true']);
+    }
+
+    public function webauthnRequestRegister(Request $request): Json
+    {
+        $user = app()->userService->getUser();
+        return json(json_decode(WebAuthn::registerRequest($user)));
+    }
+
+    public function webauthnRegisterHandler(Request $request): Json
+    {
+        $user = app()->userService->getUser();
+        $antixss = new AntiXSS();
+        return json(WebAuthn::registerHandle($user, $antixss->xss_clean($request->param())));
+    }
+
+    public function webauthnDelete(Request $request, string $id): Json
+    {
+        $user = app()->userService->getUser();
+        $device = (new MFACredential())
+            ->where('id', (int)$id)
+            ->where('userid', $user->id)
+            ->where('type', 'passkey')
+            ->findOrEmpty();
+        if ($device->isEmpty()) {
+            return json(['ret' => 0, 'msg' => '设备不存在']);
+        }
+        $device->delete();
+        return json(['ret' => 1, 'msg' => '删除成功'])->header(['HX-Refresh' => 'true']);
+    }
+
+    public function totpRegisterRequest(Request $request): Json
+    {
+        return json(TOTP::totpRegisterRequest(app()->userService->getUser()));
+    }
+
+    public function totpRegisterHandle(Request $request): Json
+    {
+        $antixss = new AntiXSS();
+        $code = $antixss->xss_clean($request->param('code'));
+        if ($code === '' || $code === null) {
+            return json([
+                'ret' => 0,
+                'msg' => '验证码不能为空',
+            ]);
+        }
+
+        return json(TOTP::totpRegisterHandle(app()->userService->getUser(), $code));
+    }
+
+    public function totpDelete(Request $request): Json
+    {
+        $user = app()->userService->getUser();
+        $device = (new MFACredential())
+            ->where('userid', $user->id)
+            ->where('type', 'totp')
+            ->findOrEmpty();
+        if ($device->isEmpty()) {
+            return json(['ret' => 0, 'msg' => '设备不存在']);
+        }
+        $device->delete();
+        return json(['ret' => 1, 'msg' => '删除成功'])->header(['HX-Refresh' => 'true']);
+    }
+
+    public function fidoRegisterRequest(Request $request): Json
+    {
+        $user = app()->userService->getUser();
+        return json(json_decode(FIDO::fidoRegisterRequest($user)));
+    }
+
+    public function fidoRegisterHandle(Request $request): Json
+    {
+        $user = app()->userService->getUser();
+        $antixss = new AntiXSS();
+        return json(FIDO::fidoRegisterHandle($user, $antixss->xss_clean($request->param())));
+    }
+
+    public function fidoDelete(Request $request, string $id): Json
+    {
+        $user = app()->userService->getUser();
+        $device = (new MFACredential())
+            ->where('id', (int)$id)
+            ->where('userid', $user->id)
+            ->where('type', 'fido')
+            ->findOrEmpty();
+        if ($device->isEmpty()) {
+            return json(['ret' => 0, 'msg' => '设备不存在']);
+        }
+        $device->delete();
+        return json(['ret' => 1, 'msg' => '删除成功'])->header(['HX-Refresh' => 'true']);
     }
 }

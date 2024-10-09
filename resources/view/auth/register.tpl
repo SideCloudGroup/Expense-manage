@@ -1,4 +1,5 @@
-<title>注册喵</title>
+<title>{:env('APP.NAME')} - 注册</title>
+
 <body class=" d-flex flex-column">
 <div class="page page-center">
     <div class="container container-tight py-4">

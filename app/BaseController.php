@@ -77,7 +77,7 @@ abstract class BaseController
             }
             $class = false !== strpos($validate, '\\') ? $validate : $this->app->parseClass('validate', $validate);
             $v = new $class();
-            if (! empty($scene)) {
+            if (!empty($scene)) {
                 $v->scene($scene);
             }
         }

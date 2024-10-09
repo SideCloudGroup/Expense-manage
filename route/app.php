@@ -15,10 +15,16 @@ use think\facade\Route;
 
 
 Route::group('auth', function () {
-    Route::get('login', 'auth/loginPage');
-    Route::post('login', 'auth/login');
-    Route::get('register', 'auth/registerPage');
-    Route::post('register', 'auth/register');
+    Route::get('/login', 'auth/loginPage');
+    Route::post('/login', 'auth/login');
+    Route::get('/register', 'auth/registerPage');
+    Route::post('/register', 'auth/register');
+    Route::get('/webauthn_request', 'auth/webauthnRequest');
+    Route::post('/webauthn_verify', 'auth/webauthnHandler');
+    Route::get('/2fa', 'auth/MfaPage');
+    Route::post('/totp_verify', 'auth/mfaTotpHandler');
+    Route::get('/fido_request', 'auth/mfaFidoRequest');
+    Route::post('/fido_verify', 'auth/mfaFidoAssert');
 })->middleware(Auth::class);
 
 Route::rule('/', 'user/invoice')->middleware(User::class);
@@ -35,6 +41,20 @@ Route::group('/user', function () {
     Route::get('/logout', 'user/logout');
     Route::get('/profile', 'user/profile');
     Route::post('/profile', 'user/updateProfile');
+    // WebAuthn
+    Route::get('/webauthn_reg', 'user/webauthnRequestRegister');
+    Route::post('/webauthn_reg', 'user/webauthnRegisterHandler');
+    Route::delete('/webauthn_reg/:id', 'user/webauthnDelete');
+    //
+    // TOTP
+    Route::get('/totp_reg', 'user/totpRegisterRequest');
+    Route::post('/totp_reg', 'user/totpRegisterHandle');
+    Route::delete('/totp_reg', 'user/totpDelete');
+    //
+    // FIDO
+    Route::get('/fido_reg', 'user/fidoRegisterRequest');
+    Route::post('/fido_reg', 'user/fidoRegisterHandle');
+    Route::delete('/fido_reg/:id', 'user/fidoDelete');
 })->middleware(User::class);
 
 Route::group('/admin', function () {

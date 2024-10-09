@@ -119,7 +119,7 @@ class Bootstrap extends Paginator
      */
     protected function getNextButton(string $text = '&raquo;'): string
     {
-        if (! $this->hasMore) {
+        if (!$this->hasMore) {
             return $this->getDisabledTextWrapper($text);
         }
 

@@ -6,6 +6,7 @@ namespace app\controller;
 use app\BaseController;
 use app\model\Item;
 use app\model\User;
+use Ramsey\Uuid\Uuid;
 use think\facade\Db;
 use think\Request;
 use think\response\Json;
@@ -46,6 +47,7 @@ class AdminController extends BaseController
         $user = new User();
         $user->username = $request->param('username');
         $user->password = password_hash($request->param('password'), PASSWORD_ARGON2ID);
+        $user->uuid = Uuid::uuid4()->toString();
         $user->save();
         return json(['ret' => 1, 'msg' => '用户已添加'])->header(['HX-Refresh' => 'true']);
     }
