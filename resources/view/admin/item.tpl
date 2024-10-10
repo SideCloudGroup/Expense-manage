@@ -21,6 +21,7 @@
                                         <th>金额</th>
                                         <th>状态</th>
                                         <th>创建时间</th>
+                                        <th>操作</th>
                                     </tr>
                                     </thead>
                                     <tbody>
@@ -43,6 +44,16 @@
                                                 {/if}
                                             </td>
                                             <td>{$item.created_at}</td>
+                                            <td>
+                                                <button class="btn btn-danger"
+                                                        hx-delete="/admin/item/{$item.id}"
+                                                        hx-trigger="click"
+                                                        hx-confirm="确定删除吗？"
+                                                        hx-disabled-elt="button"
+                                                >
+                                                    删除
+                                                </button>
+                                            </td>
                                         </tr>
                                     {/volist}
                                     </tbody>

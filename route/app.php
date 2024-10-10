@@ -63,6 +63,7 @@ Route::group('/admin', function () {
     Route::get('/user', 'admin/user');
     Route::post('/user', 'admin/addUser');
     Route::post('/item/:id', 'admin/updateItemStatus');
+    Route::delete('/item/:id', 'admin/itemDelete');
     Route::get('/item', 'admin/itemList');
     Route::get('/total', 'admin/bestPay');
     Route::get('/login', 'admin/loginPage');

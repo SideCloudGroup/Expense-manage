@@ -56,11 +56,29 @@ class AdminController extends BaseController
     {
         $user_id = $request->param('userid');
         if ($user_id === null) {
-            $items = Db::table('item')->join('user', 'item.userid = user.id')->order('item.paid')->field('item.id,user.username,item.description,item.amount,item.paid,item.created_at')->select();
+            $items = Db::table('item')
+                ->join('user', 'item.userid = user.id')
+                ->order('item.id', 'desc')
+                ->field('item.id,user.username,item.description,item.amount,item.paid,item.created_at')
+                ->select();
         } else {
-            $items = Db::table('item')->join('user', 'item.userid = user.id')->order('item.paid')->field('item.id,user.username,item.description,item.amount,item.paid,item.created_at')->where('userid', $user_id)->select();
+            $items = Db::table('item')
+                ->join('user', 'item.userid = user.id')
+                ->order('item.id', 'desc')
+                ->field('item.id,user.username,item.description,item.amount,item.paid,item.created_at')
+                ->where('userid', $user_id)->select();
         }
         return view('/admin/item', ['items' => $items]);
+    }
+
+    public function itemDelete(Request $request, string $id): Json
+    {
+        $item = (new Item())->where('id', (int) $id)->findOrEmpty();
+        if ($item->isEmpty()) {
+            return json(['ret' => 0, 'msg' => '未找到该项目']);
+        }
+        $item->delete();
+        return json(['ret' => 1, 'msg' => '删除成功'])->header(['HX-Refresh' => 'true']);
     }
 
     public function updateItemStatus(Request $request): Json
