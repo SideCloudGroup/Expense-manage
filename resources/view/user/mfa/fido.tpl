@@ -46,8 +46,9 @@
     document.getElementById('fidoReg').addEventListener('click', async () => {
         const resp = await fetch('/user/fido_reg');
         let attResp;
+        const options = await resp.json();
         try {
-            attResp = await startRegistration(await resp.json());
+            attResp = await startRegistration({ optionsJSON: options });
         } catch (error) {
             $('#error-message').text(error.message);
             $('#fail-dialog').modal('show');

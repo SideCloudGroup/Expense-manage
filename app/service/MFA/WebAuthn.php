@@ -18,8 +18,6 @@ use Webauthn\AttestationStatement\FidoU2FAttestationStatementSupport;
 use Webauthn\AttestationStatement\NoneAttestationStatementSupport;
 use Webauthn\AttestationStatement\PackedAttestationStatementSupport;
 
-;
-
 use Cose\Algorithm\Signature\ECDSA;
 use Cose\Algorithm\Signature\RSA;
 use Webauthn\AttestationStatement\TPMAttestationStatementSupport;

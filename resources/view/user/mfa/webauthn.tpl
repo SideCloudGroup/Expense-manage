@@ -35,12 +35,13 @@
 </div>
 
 <script>
-    const {startRegistration} = SimpleWebAuthnBrowser;
+    const { startRegistration } = SimpleWebAuthnBrowser;
     document.getElementById('webauthnReg').addEventListener('click', async () => {
         const resp = await fetch('/user/webauthn_reg');
+        const options = await resp.json();
         let attResp;
         try {
-            attResp = await startRegistration(await resp.json());
+            attResp = await startRegistration({ optionsJSON: options });
         } catch (error) {
             $('#error-message').text(error.message);
             $('#fail-dialog').modal('show');
@@ -54,7 +55,6 @@
             },
             body: JSON.stringify(attResp),
         });
-
         const verificationJSON = await verificationResp.json();
         if (verificationJSON.ret === 1) {
             $('#success-message').text(verificationJSON.msg);
@@ -68,3 +68,4 @@
         }
     });
 </script>
+

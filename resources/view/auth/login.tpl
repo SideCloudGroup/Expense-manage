@@ -58,13 +58,13 @@
     let successDialog = new bootstrap.Modal(document.getElementById('success-dialog'));
     let failDialog = new bootstrap.Modal(document.getElementById('fail-dialog'));
 
-    const {startAuthentication} =
-    SimpleWebAuthnBrowser;
+    const {startAuthentication} = SimpleWebAuthnBrowser;
     document.getElementById('webauthnLogin').addEventListener('click', async () => {
         const resp = await fetch('/auth/webauthn_request');
+        const options = await resp.json();
         let asseResp;
         try {
-            asseResp = await startAuthentication(await resp.json());
+            asseResp = await startAuthentication({ optionsJSON: options });
         } catch (error) {
             document.getElementById("fail-message").innerHTML = error;
             throw error;
