@@ -86,14 +86,14 @@ class UserController extends BaseController
     public function payment(Request $request): View
     {
         // 当前用户需要支付的
-        $items = Db::table('item')->join('user', 'item.initiator = user.id')->where('item.userid', Session::get('userid'))->where('item.paid', 0)->field('item.id,user.username,item.description,item.amount,item.paid,item.created_at')->select();
+        $items = Db::table('item')->join('user', 'item.initiator = user.id')->where('item.userid', Session::get('userid'))->where('item.paid', 0)->order(['item.paid', 'item.id'])->field('item.id,user.username,item.description,item.amount,item.paid,item.created_at')->select();
         return view('/user/payment', ['items' => $items]);
     }
 
     public function itemList(Request $request): View
     {
         // 当前用户发起的
-        $items = Db::table('item')->join('user', 'item.userid = user.id')->order('item.paid')->where('initiator', Session::get('userid'))->field('item.id,user.username,item.description,item.amount,item.paid,item.created_at')->select();
+        $items = Db::table('item')->join('user', 'item.userid = user.id')->order('item.paid')->where('initiator', Session::get('userid'))->order(['item.paid', 'item.id'])->field('item.id,user.username,item.description,item.amount,item.paid,item.created_at')->select();
         return view('/user/item', ['items' => $items]);
     }
 
