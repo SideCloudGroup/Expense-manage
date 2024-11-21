@@ -7,6 +7,7 @@ use app\model\MFACredential;
 use app\model\User;
 use Exception;
 use think\facade\Cache;
+use think\facade\Session;
 use Vectorface\GoogleAuthenticator;
 
 class TOTP
@@ -20,7 +21,7 @@ class TOTP
             }
             $ga = new GoogleAuthenticator();
             $token = $ga->createSecret(32);
-            Cache::set('totp_register:' . session_id(), $token, 300);
+            Cache::set('totp_register:' . Session::getId(), $token, 300);
             return ['ret' => 1, 'msg' => '请求成功', 'url' => self::getGaUrl($user, $token), 'token' => $token];
         } catch (Exception $e) {
             return ['ret' => 0, 'msg' => $e->getMessage()];
@@ -34,7 +35,7 @@ class TOTP
 
     public static function totpRegisterHandle(User $user, string $code): array
     {
-        $token = Cache::get('totp_register:' . session_id());
+        $token = Cache::get('totp_register:' . Session::getId());
         if ($token === false) {
             return ['ret' => 0, 'msg' => '验证码已过期，请刷新页面重试'];
         }
@@ -49,7 +50,7 @@ class TOTP
         $mfaCredential->type = 'totp';
         $mfaCredential->created_at = date('Y-m-d H:i:s');
         $mfaCredential->save();
-        Cache::delete('totp_register:' . session_id());
+        Cache::delete('totp_register:' . Session::getId());
         return ['ret' => 1, 'msg' => '注册成功'];
     }
 

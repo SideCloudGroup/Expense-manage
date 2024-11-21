@@ -8,6 +8,7 @@ use app\model\User;
 use Exception;
 use think\facade\Cache;
 use think\facade\Request;
+use think\facade\Session;
 use Webauthn\PublicKeyCredentialCreationOptions;
 use Webauthn\AuthenticatorAssertionResponse;
 use Webauthn\AuthenticatorAttestationResponse;
@@ -36,7 +37,7 @@ class FIDO
             );
         $serializer = WebAuthn::getSerializer();
         $jsonObject = $serializer->serialize($publicKeyCredentialCreationOptions, 'json');
-        Cache::set('fido_register:' . session_id(), $jsonObject, 300);
+        Cache::set('fido_register:' . Session::getId(), $jsonObject, 300);
         return $jsonObject;
     }
 
@@ -58,7 +59,7 @@ class FIDO
         }
 
         $publicKeyCredentialCreationOptions = $serializer->deserialize(
-            Cache::get('fido_register:' . session_id()),
+            Cache::get('fido_register:' . Session::getId()),
             PublicKeyCredentialCreationOptions::class,
             'json'
         );
@@ -113,7 +114,7 @@ class FIDO
             timeout: WebAuthn::$timeout,
         );
         $jsonObject = $serializer->serialize($publicKeyCredentialRequestOptions, 'json');
-        Cache::set('fido_assertion:' . session_id(), $jsonObject, 300);
+        Cache::set('fido_assertion:' . Session::getId(), $jsonObject, 300);
         return $jsonObject;
     }
 
@@ -134,7 +135,7 @@ class FIDO
         }
         try {
             $publicKeyCredentialRequestOptions = $serializer->deserialize(
-                Cache::get('fido_assertion:' . session_id()),
+                Cache::get('fido_assertion:' . Session::getId()),
                 PublicKeyCredentialRequestOptions::class,
                 'json'
             );

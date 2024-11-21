@@ -51,7 +51,7 @@ class AuthController extends BaseController
                     app()->cookieService->setCookie($user->id);
                     return json(['ret' => 1, 'msg' => '登录成功'])->header(['HX-Redirect' => '/']);
                 } else {
-                    Cache::set('mfa_login:' . session_id(), json_encode(['userid' => $user->id, 'method' => $user->checkMfaStatus()]), 300);
+                    Cache::set('mfa_login:' . Session::getId(), json_encode(['userid' => $user->id, 'method' => $user->checkMfaStatus()]), 300);
                     return json(['ret' => 1, 'msg' => '请完成二步认证'])->header(['HX-Redirect' => '/auth/2fa']);
                 }
             } else {
@@ -62,7 +62,7 @@ class AuthController extends BaseController
 
     public function MfaPage(): View|Redirect
     {
-        $login_session = Cache::get('mfa_login:' . session_id());
+        $login_session = Cache::get('mfa_login:' . Session::getId());
         if ($login_session === null) {
             return redirect('/auth/login');
         }
@@ -148,7 +148,7 @@ class AuthController extends BaseController
 
     public function mfaTotpHandler(Request $request): Json
     {
-        $login_session = Cache::get('mfa_login:' . session_id());
+        $login_session = Cache::get('mfa_login:' . Session::getId());
         if ($login_session === null) {
             return json(['ret' => 0, 'msg' => '登录会话已过期'])->header(['HX-Redirect' => '/auth/login']);
         }
@@ -157,7 +157,7 @@ class AuthController extends BaseController
         $antixss = new AntiXSS();
         $result = TOTP::totpVerifyHandle($user, $antixss->xss_clean($request->param('code')));
         if ($result['ret'] === 1) {
-            Cache::delete('mfa_login:' . session_id());
+            Cache::delete('mfa_login:' . Session::getId());
             Session::set('auth', true);
             Session::set('userid', $user->id);
             app()->cookieService->setCookie($user->id);
@@ -168,7 +168,7 @@ class AuthController extends BaseController
 
     public function mfaFidoRequest(Request $request): Json
     {
-        $login_session = Cache::get('mfa_login:' . session_id());
+        $login_session = Cache::get('mfa_login:' . Session::getId());
         if ($login_session === null) {
             return json(['ret' => 0, 'msg' => '登录会话已过期'])->header(['HX-Redirect' => '/auth/login']);
         }
@@ -179,7 +179,7 @@ class AuthController extends BaseController
 
     public function mfaFidoAssert(Request $request): Json
     {
-        $login_session = Cache::get('mfa_login:' . session_id());
+        $login_session = Cache::get('mfa_login:' . Session::getId());
         if ($login_session === null) {
             return json(['ret' => 0, 'msg' => '登录会话已过期'])->header(['HX-Redirect' => '/auth/login']);
         }
@@ -187,7 +187,7 @@ class AuthController extends BaseController
         $login_session = json_decode($login_session, true);
         $result = FIDO::fidoAssertHandle((new User())->where('id', $login_session['userid'])->findOrEmpty(), $antixss->xss_clean($request->param()));
         if ($result['ret'] === 1) {
-            Cache::delete('mfa_login:' . session_id());
+            Cache::delete('mfa_login:' . Session::getId());
             Session::set('auth', true);
             Session::set('userid', $login_session['userid']);
             app()->cookieService->setCookie($login_session['userid']);

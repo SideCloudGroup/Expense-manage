@@ -11,6 +11,7 @@ use Exception;
 use Symfony\Component\Serializer\SerializerInterface;
 use think\facade\Cache;
 use think\facade\Request;
+use think\facade\Session;
 use Webauthn\AttestationStatement\AndroidKeyAttestationStatementSupport;
 use Webauthn\AttestationStatement\AppleAttestationStatementSupport;
 use Webauthn\AttestationStatement\AttestationStatementSupportManager;
@@ -61,7 +62,7 @@ class WebAuthn
             );
         $serializer = self::getSerializer();
         $jsonObject = $serializer->serialize($publicKeyCredentialCreationOptions, 'json');
-        Cache::set('webauthn_register:' . session_id(), $jsonObject, 300);
+        Cache::set('webauthn_register:' . Session::getId(), $jsonObject, 300);
         return $jsonObject;
     }
 
@@ -107,7 +108,7 @@ class WebAuthn
         }
 
         $publicKeyCredentialCreationOptions = $serializer->deserialize(
-            Cache::get('webauthn_register:' . session_id()),
+            Cache::get('webauthn_register:' . Session::getId()),
             PublicKeyCredentialCreationOptions::class,
             'json'
         );
@@ -168,7 +169,7 @@ class WebAuthn
         $publicKeyCredentialRequestOptions = self::getPublicKeyCredentialRequestOptions();
         $serializer = self::getSerializer();
         $jsonObject = $serializer->serialize($publicKeyCredentialRequestOptions, 'json');
-        Cache::set('webauthn_assertion:' . session_id(), $jsonObject, 300);
+        Cache::set('webauthn_assertion:' . Session::getId(), $jsonObject, 300);
         return $jsonObject;
     }
 
@@ -202,7 +203,7 @@ class WebAuthn
         }
         try {
             $publicKeyCredentialRequestOptions = $serializer->deserialize(
-                Cache::get('webauthn_assertion:' . session_id()),
+                Cache::get('webauthn_assertion:' . Session::getId()),
                 PublicKeyCredentialRequestOptions::class,
                 'json'
             );
