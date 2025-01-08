@@ -43,6 +43,9 @@ class AuthController extends BaseController
             return json(['ret' => 0, 'msg' => '用户不存在']);
         } else {
             if (password_verify($data['password'], $user->password)) {
+                if ($user->enable === false) {
+                    return json(['ret' => 0, 'msg' => '用户已被禁用，请联系管理员']);
+                }
                 # 检查二步验证
                 $mfaCredential = (new MFACredential())->where('userid', $user->id)->whereIn('type', ['totp', 'fido'])->findOrEmpty();
                 if ($mfaCredential->isEmpty()) {

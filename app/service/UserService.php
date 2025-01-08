@@ -32,7 +32,7 @@ class UserService extends Service
     public function getUserList(): array
     {
         $user = new User();
-        return $user->field('id,username')->order('username', 'asc')->select()->toArray();
+        return $user->where('enable', true)->field('id,username')->order('username', 'asc')->select()->toArray();
     }
 
     public function getUserDetails(int $id): array
@@ -81,7 +81,7 @@ class UserService extends Service
         // 获取所有未支付订单
         $unpaid = (new Item())->where('paid', 0)->field(['userid, amount, initiator'])->select();
         foreach ($unpaid as $item) {
-            if (!isset($userUnpaid[$item->userid][$item->initiator])) {
+            if (! isset($userUnpaid[$item->userid][$item->initiator])) {
                 $userUnpaid[$item->userid][$item->initiator] = 0;
             }
             $userUnpaid[$item->userid][$item->initiator] += $item->amount;
@@ -130,10 +130,10 @@ class UserService extends Service
         // 计算每个人的净余额
         foreach ($debtsDict as $debtor => $creditors) {
             foreach ($creditors as $creditor => $amount) {
-                if (!isset($balance[$debtor])) {
+                if (! isset($balance[$debtor])) {
                     $balance[$debtor] = 0;
                 }
-                if (!isset($balance[$creditor])) {
+                if (! isset($balance[$creditor])) {
                     $balance[$creditor] = 0;
                 }
                 $balance[$debtor] -= $amount;
@@ -179,7 +179,7 @@ class UserService extends Service
         $optimizedDict = [];
         foreach ($optimizedDebts as $debt) {
             list($debtor, $creditor, $amount) = $debt;
-            if (!isset($optimizedDict[$debtor])) {
+            if (! isset($optimizedDict[$debtor])) {
                 $optimizedDict[$debtor] = [];
             }
             $optimizedDict[$debtor][$creditor] = round($amount, 2);
@@ -198,7 +198,7 @@ class UserService extends Service
         if ($user->username != $username) {
             # 检查用户名是否重复
             $user_tmp = (new User())->where('username', $username)->findOrEmpty();
-            if (!$user_tmp->isEmpty()) {
+            if (! $user_tmp->isEmpty()) {
                 return array('ret' => 0, 'msg' => '用户名已存在');
             }
             $user->username = $username;

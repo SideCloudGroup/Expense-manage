@@ -12,6 +12,7 @@ use think\Model;
  * @property string $password
  * @property string $uuid
  * @property bool $mfa_enable
+ * @property bool $enable
  */
 class User extends Model
 {
