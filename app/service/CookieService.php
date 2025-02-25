@@ -32,22 +32,27 @@ class CookieService extends Service
 
     public function checkCookie(): bool
     {
-        $jwt = Cookie::get('user');
-        if (empty($jwt)) {
-            return false;
-        }
-        [, $payload_b64] = explode('.', $jwt);
-        $payload = JWT::jsonDecode(JWT::urlsafeB64Decode($payload_b64));
-        $user = (new User())->where('uuid', $payload->uuid)->findOrEmpty();
-        if ($user->isEmpty()) {
-            return false;
-        }
         try {
-            $decoded = JWT::decode($jwt, new Key(hash('sha256', $user->password), 'HS256'));
-        } catch (Exception $e) {
+            $jwt = Cookie::get('user');
+            if (empty($jwt)) {
+                return false;
+            }
+            [, $payload_b64] = explode('.', $jwt);
+            $payload = JWT::jsonDecode(JWT::urlsafeB64Decode($payload_b64));
+            $user = (new User())->where('uuid', $payload->uuid)->findOrEmpty();
+            if ($user->isEmpty()) {
+                return false;
+            }
+            try {
+                $decoded = JWT::decode($jwt, new Key(hash('sha256', $user->password), 'HS256'));
+            } catch (Exception) {
+                return false;
+            }
+            Session::set('userid', $user->id);
+            return true;
+        } catch (Exception) {
+            Cookie::delete('user');
             return false;
         }
-        Session::set('userid', $user->id);
-        return true;
     }
 }
