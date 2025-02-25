@@ -20,7 +20,7 @@ class Auth
     public function handle(Request $request, Closure $next): Response
     {
         if (app()->userService->getUser() === null) {
-            if (!app()->cookieService->checkCookie()) {
+            if (! app()->cookieService->checkCookie()) {
                 return $next($request);
             }
         }

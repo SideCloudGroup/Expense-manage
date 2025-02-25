@@ -16,7 +16,7 @@ class TOTP
     {
         try {
             $mfaCredential = (new MFACredential())->where('userid', $user->id)->where('type', 'totp')->findOrEmpty();
-            if (!$mfaCredential->isEmpty()) {
+            if (! $mfaCredential->isEmpty()) {
                 return ['ret' => 0, 'msg' => '您已经注册过TOTP'];
             }
             $ga = new GoogleAuthenticator();
@@ -30,7 +30,7 @@ class TOTP
 
     public static function getGaUrl(User $user, string $token): string
     {
-        return 'otpauth://totp/' . rawurlencode(env('APP.NAME')) . ':' . rawurlencode($user->username) . '?secret=' . $token . '&issuer=' . rawurlencode(env('APP.NAME'));
+        return 'otpauth://totp/' . rawurlencode(env('APP_NAME')) . ':' . rawurlencode($user->username) . '?secret=' . $token . '&issuer=' . rawurlencode(env('APP_NAME'));
     }
 
     public static function totpRegisterHandle(User $user, string $code): array
@@ -40,7 +40,7 @@ class TOTP
             return ['ret' => 0, 'msg' => '验证码已过期，请刷新页面重试'];
         }
         $ga = new GoogleAuthenticator();
-        if (!$ga->verifyCode($token, $code)) {
+        if (! $ga->verifyCode($token, $code)) {
             return ['ret' => 0, 'msg' => '验证码错误'];
         }
         $mfaCredential = new MFACredential();

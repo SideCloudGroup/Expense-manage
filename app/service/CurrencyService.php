@@ -25,7 +25,7 @@ class CurrencyService extends Service
 
     public function getCurrencyList(): array
     {
-        return explode(',', env('CURRENCY.LIST'));
+        return explode(',', env('CURRENCY_LIST'));
     }
 
     public function getExchangeRate(): array
@@ -63,13 +63,13 @@ class CurrencyService extends Service
         if ($res->getStatusCode() != "200") {
             throw new Exception("Failed to fetch exchange rate");
         }
-        $data = json_decode((string)$res->getBody(), true);
-        if (!isset($data[$base])) {
+        $data = json_decode((string) $res->getBody(), true);
+        if (! isset($data[$base])) {
             throw new Exception("Invalid exchange rate data. " . $base . " not found");
         }
         foreach ($currencyList as $currency) {
             if ($currency == $base) continue;
-            if (!isset($data[$base][$currency])) {
+            if (! isset($data[$base][$currency])) {
                 throw new Exception("Invalid exchange rate data. " . $currency . " not found");
             }
             $exchangeRate[$currency] = round($data[$base][$currency], 4);

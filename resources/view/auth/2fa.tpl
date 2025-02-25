@@ -1,6 +1,6 @@
 <script src="https://unpkg.com/@simplewebauthn/browser/dist/bundle/index.umd.min.js"></script>
 
-<title>{:env('APP.NAME')} - 二步验证</title>
+<title>{:env('APP_NAME')} - 二步验证</title>
 
 <body class="border-top-wide border-primary d-flex flex-column">
 <div class="page page-center">

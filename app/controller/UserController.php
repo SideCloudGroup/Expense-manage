@@ -71,7 +71,7 @@ class UserController extends BaseController
             $amount = $request->param('amount') / $exchangeRate[$request->param('unit')];
         }
         foreach ($users as $user) {
-            app()->userService->addItem((int)$user, $request->param('description'), (float)$amount, session('userid'));
+            app()->userService->addItem((int) $user, $request->param('description'), (float) $amount, session('userid'));
         }
         return json(['ret' => 1, 'msg' => '添加成功'])->header(['HX-Refresh' => 'true']);
     }
@@ -165,7 +165,7 @@ class UserController extends BaseController
     {
         $user = app()->userService->getUser();
         $device = (new MFACredential())
-            ->where('id', (int)$id)
+            ->where('id', (int) $id)
             ->where('userid', $user->id)
             ->where('type', 'passkey')
             ->findOrEmpty();
@@ -226,7 +226,7 @@ class UserController extends BaseController
     {
         $user = app()->userService->getUser();
         $device = (new MFACredential())
-            ->where('id', (int)$id)
+            ->where('id', (int) $id)
             ->where('userid', $user->id)
             ->where('type', 'fido')
             ->findOrEmpty();
