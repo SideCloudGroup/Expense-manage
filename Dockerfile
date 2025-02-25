@@ -38,6 +38,8 @@ RUN sed -i 's/;pid = run\/php-fpm.pid/pid = \/var\/run\/php\/php-fpm.pid/' /usr/
 
 RUN apt-get autoremove -y && apt-get clean && rm -rf /var/lib/apt/lists/*
 
+RUN composer install --no-dev --no-interaction --no-progress --no-suggest --optimize-autoloader
+
 EXPOSE 9000
 
 COPY entrypoint.sh /entrypoint.sh
