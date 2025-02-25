@@ -22,7 +22,7 @@ class Admin
             return $next($request);
         }
 
-        if (session('admin') === null && env('APP.ADMIN_PASSWORD') !== "") {
+        if (session('admin') === null && env('ADMIN_PASSWORD') !== "") {
             return redirect('/admin/login');
         }
         return $next($request);

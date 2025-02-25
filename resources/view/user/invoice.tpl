@@ -1,6 +1,6 @@
 {include file='/user/header'}
 
-<title>{:env('APP.NAME')} - 账单管理</title>
+<title>{:env('APP_NAME')} - 账单管理</title>
 <div class="page">
     <div class="page-wrapper">
         <div class="page-header d-print-none">

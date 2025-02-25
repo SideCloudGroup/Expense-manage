@@ -25,7 +25,7 @@ class User extends Model
         if ($fido->isEmpty() && $totp->isEmpty()) {
             return ['require' => false];
         } else {
-            return ['require' => true, 'fido' => !$fido->isEmpty(), 'totp' => !$totp->isEmpty()];
+            return ['require' => true, 'fido' => ! $fido->isEmpty(), 'totp' => ! $totp->isEmpty()];
         }
     }
 }

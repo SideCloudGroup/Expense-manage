@@ -1,5 +1,5 @@
 {include file="/user/header"}
-<title>{:env('APP.NAME')} - 添加项目</title>
+<title>{:env('APP_NAME')} - 添加项目</title>
 <div class="container" style="margin-top: 2%; width: auto;">
     <div class="card" style="margin-top: 26px">
         <div class="card border">

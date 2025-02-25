@@ -3,5 +3,5 @@
 
 function getUnitSign(): string
 {
-    return env('CURRENCY.UNIT_SIGN', '￥');
+    return env('CURRENCY_SIGN', '￥');
 }

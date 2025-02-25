@@ -1,6 +1,6 @@
 <script src="https://unpkg.com/@simplewebauthn/browser/dist/bundle/index.umd.min.js"></script>
 
-<title>{:env('APP.NAME')} - 登录</title>
+<title>{:env('APP_NAME')} - 登录</title>
 <body class="border-top-wide border-primary d-flex flex-column">
 <div class="page page-center">
     <div class="container-tight my-auto">
@@ -44,7 +44,7 @@
                 </div>
             </div>
         </div>
-        {if env("APP.REGISTER_CODE")!=''}
+        {if env("REGISTER_CODE")!=''}
             <div class="text-center text-muted mt-3">
                 还没有账户？<a href="/auth/register" tabindex="-1">前往注册</a>
             </div>

@@ -18,15 +18,15 @@ class CookieService extends Service
         $this->app->bind('cookieService', CookieService::class);
     }
 
-    public function setCookie(int $userID): void
+    public function setCookie(User $user): void
     {
         $payload = [
             'exp' => time() + 2592000,
             'nbf' => time(),
             'iat' => time(),
-            'userid' => $userID
+            'userid' => $user->id,
         ];
-        $jwt = JWT::encode($payload, env('APP.COOKIE_KEY'), 'HS256');
+        $jwt = JWT::encode($payload, hash('sha256', $user->password), 'HS256');
         Cookie::set('user', $jwt, 2592000);
     }
 
@@ -36,19 +36,18 @@ class CookieService extends Service
         if (empty($jwt)) {
             return false;
         }
-        try {
-            $decoded = JWT::decode($jwt, new Key(env('APP.COOKIE_KEY'), 'HS256'));
-            if ($decoded->exp < time()) {
-                return false;
-            }
-            $user = (new User())->where('id', $decoded->userid)->findOrEmpty();
-            if ($user->isEmpty()) {
-                return false;
-            }
-            Session::set('userid', $decoded->userid);
-            return true;
-        } catch (Exception) {
+        [, $payload_b64] = explode('.', $jwt);
+        $payload = JWT::jsonDecode(JWT::urlsafeB64Decode($payload_b64));
+        $user = (new User())->where('uuid', $payload->uuid)->findOrEmpty();
+        if ($user->isEmpty()) {
             return false;
         }
+        try {
+            $decoded = JWT::decode($jwt, new Key(hash('sha256', $user->password), 'HS256'));
+        } catch (Exception $e) {
+            return false;
+        }
+        Session::set('userid', $user->id);
+        return true;
     }
 }

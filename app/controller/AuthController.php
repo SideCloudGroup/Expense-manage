@@ -48,7 +48,7 @@ class AuthController extends BaseController
                 if ($mfaCredential->isEmpty()) {
                     Session::set('auth', true);
                     Session::set('userid', $user->id);
-                    app()->cookieService->setCookie($user->id);
+                    app()->cookieService->setCookie($user);
                     return json(['ret' => 1, 'msg' => '登录成功'])->header(['HX-Redirect' => '/']);
                 } else {
                     Cache::set('mfa_login:' . Session::getId(), json_encode(['userid' => $user->id, 'method' => $user->checkMfaStatus()]), 300);
@@ -80,7 +80,7 @@ class AuthController extends BaseController
 
     public function registerPage(): View|Redirect
     {
-        if (env('APP.REGISTER_CODE') == '') {
+        if (env('REGISTER_CODE') == '') {
             return redirect('/auth/login');
         }
         return view('/auth/register');
@@ -88,7 +88,7 @@ class AuthController extends BaseController
 
     public function register(Request $request): Json
     {
-        if (env('APP.REGISTER_CODE') == '') {
+        if (env('REGISTER_CODE') == '') {
             return json(['ret' => 0, 'msg' => '注册已关闭']);
         }
         $antixss = new AntiXSS();
@@ -100,7 +100,7 @@ class AuthController extends BaseController
             'captcha' => $antixss->xss_clean($request->param('captcha')),
         ];
         # 验证码
-        if (!captcha_check($data['captcha'])) {
+        if (! captcha_check($data['captcha'])) {
             return json(['ret' => 0, 'msg' => '验证码错误']);
         }
         # 密码
@@ -112,11 +112,11 @@ class AuthController extends BaseController
         } catch (ValidateException $e) {
             return json(['ret' => 0, 'msg' => $e->getError()]);
         }
-        if ($data['register_code'] !== env('APP.REGISTER_CODE')) {
+        if ($data['register_code'] !== env('REGISTER_CODE')) {
             return json(['ret' => 0, 'msg' => '注册码错误']);
         }
         $user = (new User())->where('username', $data['username'])->findOrEmpty();
-        if (!$user->isEmpty()) {
+        if (! $user->isEmpty()) {
             return json(['ret' => 0, 'msg' => '用户已存在']);
         }
         $user = new User();
@@ -140,7 +140,7 @@ class AuthController extends BaseController
             // remember me
             $user = $result['user'];
             Session::set('userid', $user->id);
-            app()->cookieService->setCookie($user->id);
+            app()->cookieService->setCookie($user);
             return json(['ret' => 1, 'msg' => '登录成功', 'redir' => '/']);
         }
         return json($result);
@@ -160,7 +160,7 @@ class AuthController extends BaseController
             Cache::delete('mfa_login:' . Session::getId());
             Session::set('auth', true);
             Session::set('userid', $user->id);
-            app()->cookieService->setCookie($user->id);
+            app()->cookieService->setCookie($user);
             return json(['ret' => 1, 'msg' => '登录成功'])->header(['HX-Redirect' => '/']);
         }
         return json($result);
@@ -185,12 +185,13 @@ class AuthController extends BaseController
         }
         $antixss = new AntiXSS();
         $login_session = json_decode($login_session, true);
-        $result = FIDO::fidoAssertHandle((new User())->where('id', $login_session['userid'])->findOrEmpty(), $antixss->xss_clean($request->param()));
+        $user = (new User())->where('id', $login_session['userid'])->findOrEmpty();
+        $result = FIDO::fidoAssertHandle($user, $antixss->xss_clean($request->param()));
         if ($result['ret'] === 1) {
             Cache::delete('mfa_login:' . Session::getId());
             Session::set('auth', true);
             Session::set('userid', $login_session['userid']);
-            app()->cookieService->setCookie($login_session['userid']);
+            app()->cookieService->setCookie($user);
             return json(['ret' => 1, 'msg' => '登录成功', 'redir' => '/']);
         }
         return json($result);

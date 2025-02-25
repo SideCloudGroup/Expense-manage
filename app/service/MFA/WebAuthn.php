@@ -5,9 +5,11 @@ namespace app\service\MFA;
 use app\model\MFACredential;
 use app\model\User;
 use Cose\Algorithm\Manager;
+use Cose\Algorithm\Signature\ECDSA;
+use Cose\Algorithm\Signature\RSA;
 use Cose\Algorithms;
-use Symfony\Component\Clock\NativeClock;
 use Exception;
+use Symfony\Component\Clock\NativeClock;
 use Symfony\Component\Serializer\SerializerInterface;
 use think\facade\Cache;
 use think\facade\Request;
@@ -18,9 +20,6 @@ use Webauthn\AttestationStatement\AttestationStatementSupportManager;
 use Webauthn\AttestationStatement\FidoU2FAttestationStatementSupport;
 use Webauthn\AttestationStatement\NoneAttestationStatementSupport;
 use Webauthn\AttestationStatement\PackedAttestationStatementSupport;
-
-use Cose\Algorithm\Signature\ECDSA;
-use Cose\Algorithm\Signature\RSA;
 use Webauthn\AttestationStatement\TPMAttestationStatementSupport;
 use Webauthn\AuthenticatorAssertionResponse;
 use Webauthn\AuthenticatorAssertionResponseValidator;
@@ -68,7 +67,7 @@ class WebAuthn
 
     public static function generateRPEntity(): PublicKeyCredentialRpEntity
     {
-        return PublicKeyCredentialRpEntity::create(env('APP.NAME'), Request::host());
+        return PublicKeyCredentialRpEntity::create(env('APP_NAME'), Request::host());
     }
 
     public static function generateUserEntity(User $user): PublicKeyCredentialUserEntity
@@ -91,6 +90,23 @@ class WebAuthn
         ];
     }
 
+    public static function getSerializer(): SerializerInterface
+    {
+        $clock = new NativeClock();
+        $coseAlgorithmManager = Manager::create();
+        $coseAlgorithmManager->add(ECDSA\ES256::create());
+        $coseAlgorithmManager->add(RSA\RS256::create());
+        $attestationStatementSupportManager = AttestationStatementSupportManager::create();
+        $attestationStatementSupportManager->add(NoneAttestationStatementSupport::create());
+        $attestationStatementSupportManager->add(FidoU2FAttestationStatementSupport::create());
+        $attestationStatementSupportManager->add(AppleAttestationStatementSupport::create());
+        $attestationStatementSupportManager->add(AndroidKeyAttestationStatementSupport::create());
+        $attestationStatementSupportManager->add(TPMAttestationStatementSupport::create($clock));
+        $attestationStatementSupportManager->add(PackedAttestationStatementSupport::create($coseAlgorithmManager));
+        $factory = new WebauthnSerializerFactory($attestationStatementSupportManager);
+        return $factory->create();
+    }
+
     public static function registerHandle(User $user, array $data): array
     {
         $serializer = self::getSerializer();
@@ -103,7 +119,7 @@ class WebAuthn
         } catch (Exception $e) {
             return ['ret' => 0, 'msg' => $e->getMessage()];
         }
-        if (!isset($publicKeyCredential->response) || !$publicKeyCredential->response instanceof AuthenticatorAttestationResponse) {
+        if (! isset($publicKeyCredential->response) || ! $publicKeyCredential->response instanceof AuthenticatorAttestationResponse) {
             return ['ret' => 0, 'msg' => '密钥类型错误'];
         }
 
@@ -138,23 +154,6 @@ class WebAuthn
         return ['ret' => 1, 'msg' => '注册成功'];
     }
 
-    public static function getSerializer(): SerializerInterface
-    {
-        $clock = new NativeClock();
-        $coseAlgorithmManager = Manager::create();
-        $coseAlgorithmManager->add(ECDSA\ES256::create());
-        $coseAlgorithmManager->add(RSA\RS256::create());
-        $attestationStatementSupportManager = AttestationStatementSupportManager::create();
-        $attestationStatementSupportManager->add(NoneAttestationStatementSupport::create());
-        $attestationStatementSupportManager->add(FidoU2FAttestationStatementSupport::create());
-        $attestationStatementSupportManager->add(AppleAttestationStatementSupport::create());
-        $attestationStatementSupportManager->add(AndroidKeyAttestationStatementSupport::create());
-        $attestationStatementSupportManager->add(TPMAttestationStatementSupport::create($clock));
-        $attestationStatementSupportManager->add(PackedAttestationStatementSupport::create($coseAlgorithmManager));
-        $factory = new WebauthnSerializerFactory($attestationStatementSupportManager);
-        return $factory->create();
-    }
-
     public static function getAuthenticatorAttestationResponseValidator(): AuthenticatorAttestationResponseValidator
     {
         $csmFactory = new CeremonyStepManagerFactory();
@@ -187,7 +186,7 @@ class WebAuthn
     {
         $serializer = self::getSerializer();
         $publicKeyCredential = $serializer->deserialize(json_encode($data), PublicKeyCredential::class, 'json');
-        if (!$publicKeyCredential->response instanceof AuthenticatorAssertionResponse) {
+        if (! $publicKeyCredential->response instanceof AuthenticatorAssertionResponse) {
             return ['ret' => 0, 'msg' => '验证失败'];
         }
         $publicKeyCredentialSource = (new MFACredential())

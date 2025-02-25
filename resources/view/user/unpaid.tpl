@@ -1,6 +1,6 @@
 {include file="user/header"}
 
-<title>{:env('APP.NAME')} - 未支付的金额</title>
+<title>{:env('APP_NAME')} - 未支付的金额</title>
 <div class="page">
     <div class="page-wrapper">
         <div class="page-header d-print-none">

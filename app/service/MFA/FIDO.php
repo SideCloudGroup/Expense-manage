@@ -9,11 +9,11 @@ use Exception;
 use think\facade\Cache;
 use think\facade\Request;
 use think\facade\Session;
-use Webauthn\PublicKeyCredentialCreationOptions;
 use Webauthn\AuthenticatorAssertionResponse;
 use Webauthn\AuthenticatorAttestationResponse;
 use Webauthn\AuthenticatorSelectionCriteria;
 use Webauthn\PublicKeyCredential;
+use Webauthn\PublicKeyCredentialCreationOptions;
 use Webauthn\PublicKeyCredentialDescriptor;
 use Webauthn\PublicKeyCredentialRequestOptions;
 use Webauthn\PublicKeyCredentialSource;
@@ -54,7 +54,7 @@ class FIDO
         } catch (Exception $e) {
             return ['ret' => 0, 'msg' => $e->getMessage()];
         }
-        if (!isset($publicKeyCredential->response) || !$publicKeyCredential->response instanceof AuthenticatorAttestationResponse) {
+        if (! isset($publicKeyCredential->response) || ! $publicKeyCredential->response instanceof AuthenticatorAttestationResponse) {
             return ['ret' => 0, 'msg' => '密钥类型错误'];
         }
 
@@ -122,7 +122,7 @@ class FIDO
     {
         $serializer = WebAuthn::getSerializer();
         $publicKeyCredential = $serializer->deserialize(json_encode($data), PublicKeyCredential::class, 'json');
-        if (!$publicKeyCredential->response instanceof AuthenticatorAssertionResponse) {
+        if (! $publicKeyCredential->response instanceof AuthenticatorAssertionResponse) {
             return ['ret' => 0, 'msg' => '验证失败'];
         }
         $publicKeyCredentialSource = (new MFACredential())

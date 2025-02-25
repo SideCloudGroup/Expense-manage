@@ -29,7 +29,7 @@ class AdminController extends BaseController
 
     public function loginHandler(Request $request): Json
     {
-        if ($request->param('password') !== env('APP.ADMIN_PASSWORD')) {
+        if ($request->param('password') !== env('ADMIN_PASSWORD')) {
             return json(['ret' => 0, 'msg' => '管理员密码错误']);
         }
         session('admin', true);

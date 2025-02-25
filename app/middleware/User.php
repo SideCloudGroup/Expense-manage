@@ -21,7 +21,7 @@ class User
     public function handle(Request $request, Closure $next): Response
     {
         if (Session::get("userid") === null) {
-            if (!app()->cookieService->checkCookie()) {
+            if (! app()->cookieService->checkCookie()) {
                 return redirect("/auth/login");
             }
         }

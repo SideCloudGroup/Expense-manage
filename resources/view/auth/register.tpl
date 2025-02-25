@@ -1,4 +1,4 @@
-<title>{:env('APP.NAME')} - 注册</title>
+<title>{:env('APP_NAME')} - 注册</title>
 
 <body class=" d-flex flex-column">
 <div class="page page-center">
