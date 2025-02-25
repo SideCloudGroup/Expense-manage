@@ -17,7 +17,7 @@
 首先，从 GitHub 仓库下载 `.example.env` 文件、`docker-compose.yml` 文件和 `nginx.conf` 文件。
 
 ```sh
-wget https://github.com/SideCloudGroup/Expense-manage/raw/refs/heads/main/.example.env .env
+wget https://github.com/SideCloudGroup/Expense-manage/raw/refs/heads/main/.example.env -O .env
 wget https://github.com/SideCloudGroup/Expense-manage/raw/refs/heads/main/docker-compose.yml
 wget https://github.com/SideCloudGroup/Expense-manage/raw/refs/heads/main/nginx.conf
 ```

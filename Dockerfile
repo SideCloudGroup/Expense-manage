@@ -32,6 +32,8 @@ RUN echo "opcache.enable=1" > /usr/local/etc/php/conf.d/opcache.ini \
     && echo "opcache.revalidate_freq=2" >> /usr/local/etc/php/conf.d/opcache.ini \
     && echo "opcache.validate_timestamps=1" >> /usr/local/etc/php/conf.d/opcache.ini
 
+RUN mkdir -p /var/run/php && chown www-data:www-data /var/run/php
+
 RUN sed -i 's/;pid = run\/php-fpm.pid/pid = \/var\/run\/php\/php-fpm.pid/' /usr/local/etc/php-fpm.conf
 
 RUN apt-get autoremove -y && apt-get clean && rm -rf /var/lib/apt/lists/*
