@@ -1,7 +1,6 @@
 services:
   php-fpm:
     image: pplulee/expense-php:latest
-    container_name: expense-php
     volumes:
       - .env:/var/www/html/.env
     depends_on:
@@ -9,24 +8,29 @@ services:
         condition: service_healthy
     networks:
       - expense-network
+    healthcheck:
+      test: [ "CMD", "test", "-f", "/var/run/php/php-fpm.pid" ]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 60s
     restart: always
 
   nginx:
     image: nginx:latest
-    container_name: expense-nginx
     ports:
-      - "127.0.0.1:8413:80"
+      - "127.0.0.1:${WEB_PORT}:80"
     volumes:
-      - ./data/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - nginx.conf:/etc/nginx/conf.d/default.conf:ro
     depends_on:
-      - php-fpm
+      php-fpm:
+        condition: service_healthy
     networks:
       - expense-network
     restart: always
 
   mariadb:
     image: mariadb:latest
-    container_name: expense-mariadb
     volumes:
       - ./data/mariadb/data:/var/lib/mysql
       - ./data/mariadb/conf:/etc/mysql/conf.d
