@@ -7,21 +7,16 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libfreetype6-dev \
     libzip-dev \
     unzip \
-    wget \
-    cron \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install -j$(nproc) \
     pdo_mysql \
-    mbstring \
-    bcmath \
     gd \
     zip \
-    fileinfo \
-    opcache \
+    opcache
 
 RUN php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');" && \
     php composer-setup.php --install-dir=/usr/local/bin --filename=composer && \
-    php -r "unlink('composer-setup.php');" \
+    php -r "unlink('composer-setup.php');"
 
 RUN echo "disable_functions=" > /usr/local/etc/php/conf.d/disable_functions.ini
 
@@ -42,7 +37,11 @@ RUN sed -i 's/;pid = run\/php-fpm.pid/pid = \/var\/run\/php\/php-fpm.pid/' /usr/
 RUN apt-get autoremove -y && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 EXPOSE 9000
+
 COPY entrypoint.sh /entrypoint.sh
+
 RUN chmod +x /entrypoint.sh
+
 ENTRYPOINT ["/entrypoint.sh"]
+
 CMD ["php-fpm"]

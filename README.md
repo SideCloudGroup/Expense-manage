@@ -1,52 +1,63 @@
 # Expense-manage
+
 一个便捷的团体开支管理程序，支持多人协作，计算最优的支付方案。
 
 ## 使用场景
+
 - 一群人出游，记录每个人支付过的费用，最后计算每个人应该支付多少钱给其他人。
 
 ## 使用方法
 
 ### 0.环境要求
-PHP>=8.0, MySQL或MariaDB
 
-### 1.下载源码
-略
+已安装 Docker Compose
 
-### 2.修改配置文件
-将配置文件`.example.env`复制一份，名字改为`.env`，并填写设置项。
+### 1. 克隆项目或下载必要文件
 
-### 3.安装依赖
-安装前请确保已启用`putenv`和`proc_open`函数，并安装`fileinfo`拓展。
-```bash
-wget https://getcomposer.org/installer -O composer.phar
-php composer.phar
-php composer.phar install
+首先，从 GitHub 仓库下载 `.example.env` 文件、`docker-compose.yml` 文件和 `nginx.conf` 文件。
+
+```sh
+wget https://github.com/SideCloudGroup/Expense-manage/raw/refs/heads/main/.example.env .env
+wget https://github.com/SideCloudGroup/Expense-manage/raw/refs/heads/main/docker-compose.yml
+wget https://github.com/SideCloudGroup/Expense-manage/raw/refs/heads/main/nginx.conf
 ```
 
-### 4.导入数据库
-```bash
-php think migrate:run
+### 2. 配置环境变量
+
+根据项目需求修改 `.env` 文件中的变量，例如数据库连接信息、端口配置等。
+
+### 3. 启动 Docker Compose
+
+在 `.env` 文件配置完成后，执行以下命令启动 Docker Compose：
+
+```sh
+docker compose up -d
 ```
 
-### 5.设置伪静态和运行目录
-设置网站运行目录为`/public`
+该命令将在后台启动所有定义的容器。
 
-设置伪静态为
-```nginx
-location ~* (runtime|application)/{    
-    return 403;
-}
-location / {
-    if (!-e $request_filename){
-        rewrite  ^(.*)$  /index.php?s=$1  last;   break;
-    }
-}
+### 4. 配置反向代理
+
+您可以使用 Nginx 或 Cloudflare Tunnel 等工具配置反向代理，将服务暴露到公网。
+
+### 5. 验证服务是否运行
+
+检查容器状态：
+
+```sh
+docker compose ps
 ```
 
-### 6.设置权限
-将整个网站目录权限设置为755，所有者为www（或其他对应的用户）
+检查日志输出：
+
+```sh
+docker compose logs -f
+```
+
+如果一切正常，你的服务应该已经成功运行，并通过反向代理访问。
 
 ### 后续操作
+
 前往`/admin`可添加用户。所有用户均可发起收款。收款发起人可以修改收款项目的状态。
 
 在管理面板内可查询`计算最优待支付`，用于在最后阶段计算优化后的支付方案。
