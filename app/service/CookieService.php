@@ -24,7 +24,7 @@ class CookieService extends Service
             'exp' => time() + 2592000,
             'nbf' => time(),
             'iat' => time(),
-            'userid' => $user->id,
+            'uuid' => $user->uuid,
         ];
         $jwt = JWT::encode($payload, hash('sha256', $user->password), 'HS256');
         Cookie::set('user', $jwt, 2592000);

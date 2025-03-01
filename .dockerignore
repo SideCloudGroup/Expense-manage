@@ -16,6 +16,7 @@ LICENSE
 README.md
 nginx.conf
 build.bat
+build_arm.sh
 .gitignore
 .example.env
 .git
