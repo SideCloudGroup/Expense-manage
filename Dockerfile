@@ -1,42 +1,46 @@
-FROM php:8.3-fpm
+FROM php:8.3-fpm-alpine
 
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    libonig-dev \
-    libpng-dev \
-    libjpeg-dev \
-    libfreetype6-dev \
-    libzip-dev \
-    unzip \
-    && docker-php-ext-configure gd --with-freetype --with-jpeg \
-    && docker-php-ext-install -j$(nproc) \
-    pdo_mysql \
-    gd \
-    zip \
-    opcache
-
-RUN php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');" && \
-    php composer-setup.php --install-dir=/usr/local/bin --filename=composer && \
-    php -r "unlink('composer-setup.php');"
-
-RUN echo "disable_functions=" > /usr/local/etc/php/conf.d/disable_functions.ini
+RUN set -eux; \
+    apk add --no-cache --virtual .build-deps \
+      $PHPIZE_DEPS \
+      libpng-dev \
+      libjpeg-turbo-dev \
+      freetype-dev \
+      libzip-dev \
+      oniguruma-dev \
+      libxml2-dev \
+      unzip \
+      curl; \
+    apk add --no-cache \
+      libpng \
+      libjpeg-turbo \
+      freetype \
+      libzip \
+      oniguruma; \
+    \
+    docker-php-ext-configure gd --with-freetype --with-jpeg; \
+    docker-php-ext-install -j"$(nproc)" \
+      pdo_mysql \
+      mbstring \
+      exif \
+      pcntl \
+      zip \
+      gd \
+      bcmath; \
+    \
+    curl -sS https://getcomposer.org/installer \
+      | php -- --install-dir=/usr/local/bin --filename=composer; \
+    \
+    mkdir -p /var/run/php; \
+    chown -R www-data:www-data /var/run/php; \
+    sed -i 's#;pid = run/php-fpm.pid#pid = /var/run/php/php-fpm.pid#' \
+      /usr/local/etc/php-fpm.conf; \
+    \
+    apk del .build-deps
 
 WORKDIR /var/www/html
 
 COPY . /var/www/html
-
-RUN echo "opcache.enable=1" > /usr/local/etc/php/conf.d/opcache.ini \
-    && echo "opcache.enable_cli=1" >> /usr/local/etc/php/conf.d/opcache.ini \
-    && echo "opcache.memory_consumption=128" >> /usr/local/etc/php/conf.d/opcache.ini \
-    && echo "opcache.interned_strings_buffer=8" >> /usr/local/etc/php/conf.d/opcache.ini \
-    && echo "opcache.max_accelerated_files=10000" >> /usr/local/etc/php/conf.d/opcache.ini \
-    && echo "opcache.revalidate_freq=2" >> /usr/local/etc/php/conf.d/opcache.ini \
-    && echo "opcache.validate_timestamps=1" >> /usr/local/etc/php/conf.d/opcache.ini
-
-RUN mkdir -p /var/run/php && chown www-data:www-data /var/run/php
-
-RUN sed -i 's/;pid = run\/php-fpm.pid/pid = \/var\/run\/php\/php-fpm.pid/' /usr/local/etc/php-fpm.conf
-
-RUN apt-get autoremove -y && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 RUN composer install --no-dev --no-interaction --no-progress --no-suggest --optimize-autoloader
 

@@ -15,6 +15,10 @@ services:
       retries: 3
       start_period: 60s
     restart: always
+    logging:
+      options:
+        max-size: "3m"
+        max-file: "2"
 
   nginx:
     image: nginx:latest
@@ -28,6 +32,10 @@ services:
     networks:
       - expense-network
     restart: always
+    logging:
+      options:
+        max-size: "3m"
+        max-file: "2"
 
   mariadb:
     image: mariadb:latest
@@ -45,6 +53,10 @@ services:
       timeout: 5s
       retries: 3
       start_period: 20s
+    logging:
+      options:
+        max-size: "3m"
+        max-file: "2"
 
 networks:
   expense-network:
