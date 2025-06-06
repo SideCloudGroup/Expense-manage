@@ -38,7 +38,8 @@
         "topthink/think-captcha": "^3.0",
         "voku/anti-xss": "^4.0",
         "web-auth/webauthn-framework": "^5.0",
-        "vectorface/googleauthenticator": "^3.0"
+        "vectorface/googleauthenticator": "^3.0",
+        "topthink/think-validate": "v3.0.5"
     },
     "require-dev": {
         "symfony/var-dumper": ">=4.2",

@@ -73,6 +73,9 @@
     </div>
 </div>
 </body>
+
+{include file="/footer"}
+
 <script>
     var passwordInput = $('input[id="password"]');
     var confirmPasswordInput = $('input[id="confirm_password"]');
@@ -101,4 +104,3 @@
         $('img[alt="captcha"]').attr('src', '{:captcha_src()}?' + Math.random());
     }
 </script>
-{include file="/footer"}

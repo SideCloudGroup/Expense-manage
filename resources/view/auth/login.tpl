@@ -55,10 +55,8 @@
 {include file="/footer"}
 
 <script>
-    let successDialog = new bootstrap.Modal(document.getElementById('success-dialog'));
-    let failDialog = new bootstrap.Modal(document.getElementById('fail-dialog'));
-
-    const {startAuthentication} = SimpleWebAuthnBrowser;
+    const {startAuthentication} =
+    SimpleWebAuthnBrowser;
     document.getElementById('webauthnLogin').addEventListener('click', async () => {
         const resp = await fetch('/auth/webauthn_request');
         const options = await resp.json();
@@ -66,7 +64,12 @@
         try {
             asseResp = await startAuthentication({ optionsJSON: options });
         } catch (error) {
-            document.getElementById("fail-message").innerHTML = error;
+            Swal.fire({
+                icon: 'error',
+                title: '系统错误',
+                text: error,
+                confirmButtonText: '确定'
+            });
             throw error;
         }
         const verificationResp = await fetch('/auth/webauthn_verify', {
@@ -78,11 +81,20 @@
         });
         const verificationJSON = await verificationResp.json();
         if (verificationJSON.ret === 1) {
-            document.getElementById("success-message").innerHTML = verificationJSON.msg;
-            successDialog.show();
+            Swal.fire({
+                icon: 'success',
+                title: '成功',
+                text: verificationJSON.msg,
+                confirmButtonText: '确定'
+            });
             window.location.href = verificationJSON.redir;
         } else {
-            document.getElementById("fail-message").innerHTML = verificationJSON.msg;
+            Swal.fire({
+                icon: 'error',
+                title: '操作失败',
+                text: verificationJSON.msg,
+                confirmButtonText: '确定'
+            });
             failDialog.show();
         }
     });
