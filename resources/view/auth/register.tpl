@@ -28,12 +28,6 @@
                     </div>
                 </div>
                 <div class="mb-2">
-                    <label class="form-label"><i class="fa-solid fa-certificate"></i> 注册码</label>
-                    <div class="input-group input-group-flat">
-                        <input class="form-control" id="register_code" placeholder="请输入注册码" required type="text">
-                    </div>
-                </div>
-                <div class="mb-2">
                     <label class="form-label"><i class="fas fa-key"></i> 验证码</label>
                     <div class="row">
                         <div class="col">
@@ -58,7 +52,6 @@
                                 username: document.getElementById("username").value,
                                 password: document.getElementById("password").value,
                                 confirm_password: document.getElementById("confirm_password").value,
-                                register_code: document.getElementById("register_code").value,
                                 captcha: document.getElementById("captcha").value,
                              }'
                     >

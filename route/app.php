@@ -27,16 +27,19 @@ Route::group('auth', function () {
     Route::post('/fido_verify', 'auth/mfaFidoAssert');
 })->middleware(Auth::class);
 
-Route::rule('/', 'user/invoice')->middleware(User::class);
+Route::rule('/', 'user/index')->middleware(User::class);
 Route::group('/user', function () {
-    Route::get('', 'user/invoice');
-    Route::get('/', 'user/invoice');
-    Route::get('/unpaid', 'user/unpaid');
+    Route::get('', 'user/index');
+    Route::get('/', 'user/index');
+    
+    Route::get('/payment/party/:partyId', 'user/paymentByParty');
     Route::get('/payment', 'user/payment');
     Route::get('/item/add', 'user/addItem');
     Route::post('/item/add', 'user/processAddItem');
+    Route::get('/item/party/:partyId', 'user/itemListByParty');
     Route::post('/item/:id', 'user/updateItemStatus');
     Route::get('/item', 'user/itemList');
+    Route::get('/invoice', 'user/invoice');
     Route::get('/currency', 'user/currency');
     Route::get('/logout', 'user/logout');
     Route::get('/profile', 'user/profile');
@@ -55,6 +58,17 @@ Route::group('/user', function () {
     Route::get('/fido_reg', 'user/fidoRegisterRequest');
     Route::post('/fido_reg', 'user/fidoRegisterHandle');
     Route::delete('/fido_reg/:id', 'user/fidoDelete');
+    //
+    // Party
+    Route::get('/party/create', 'party/create');
+    Route::get('/party/join', 'party/join');
+    Route::post('/party/join', 'party/joinParty');
+    Route::get('/party/:id/users', 'party/getMembers');
+    Route::post('/party/:id/leave', 'party/leave');
+    Route::delete('/party/:id', 'party/destroy');
+    Route::get('/party/:id', 'party/show');
+    Route::get('/party', 'party/index');
+    Route::post('/party', 'party/store');
 })->middleware(User::class);
 
 Route::group('/admin', function () {
@@ -68,6 +82,4 @@ Route::group('/admin', function () {
     Route::get('/total/download', 'admin/downloadBestPay');
     Route::post('/total/clear', 'admin/clearBestPay');
     Route::get('/total', 'admin/bestPay');
-    Route::get('/login', 'admin/loginPage');
-    Route::post('/login', 'admin/loginHandler');
 })->middleware(Admin::class);

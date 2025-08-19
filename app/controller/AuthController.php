@@ -81,25 +81,18 @@ class AuthController extends BaseController
         return view('/auth/login');
     }
 
-    public function registerPage(): View|Redirect
+    public function registerPage(): View
     {
-        if (env('REGISTER_CODE') == '') {
-            return redirect('/auth/login');
-        }
         return view('/auth/register');
     }
 
     public function register(Request $request): Json
     {
-        if (env('REGISTER_CODE') == '') {
-            return json(['ret' => 0, 'msg' => '注册已关闭']);
-        }
         $antixss = new AntiXSS();
         $data = [
             'username' => $antixss->xss_clean($request->param('username')),
             'password' => $antixss->xss_clean($request->param('password')),
             'confirm_password' => $antixss->xss_clean($request->param('confirm_password')),
-            'register_code' => $antixss->xss_clean($request->param('register_code')),
             'captcha' => $antixss->xss_clean($request->param('captcha')),
         ];
         # 验证码
@@ -114,9 +107,6 @@ class AuthController extends BaseController
             validate(UserRegister::class)->check($data);
         } catch (ValidateException $e) {
             return json(['ret' => 0, 'msg' => $e->getError()]);
-        }
-        if ($data['register_code'] !== env('REGISTER_CODE')) {
-            return json(['ret' => 0, 'msg' => '注册码错误']);
         }
         $user = (new User())->where('username', $data['username'])->findOrEmpty();
         if (! $user->isEmpty()) {

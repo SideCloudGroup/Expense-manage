@@ -15,15 +15,15 @@
                             <div class="col">
                                 <div class="row g-2">
                                     <div class="col">
-                                        <input type="text" class="form-control form-control-lg text-center py-3"
+                                        <input type="text" class="form-control form-control-lg text-center px-3 py-3"
                                                maxlength="1" inputmode="numeric" pattern="[0-9]*" data-code-input="">
                                     </div>
                                     <div class="col">
-                                        <input type="text" class="form-control form-control-lg text-center py-3"
+                                        <input type="text" class="form-control form-control-lg text-center px-3 py-3"
                                                maxlength="1" inputmode="numeric" pattern="[0-9]*" data-code-input="">
                                     </div>
                                     <div class="col">
-                                        <input type="text" class="form-control form-control-lg text-center py-3"
+                                        <input type="text" class="form-control form-control-lg text-center px-3 py-3"
                                                maxlength="1" inputmode="numeric" pattern="[0-9]*" data-code-input="">
                                     </div>
                                 </div>
@@ -31,15 +31,15 @@
                             <div class="col">
                                 <div class="row g-2">
                                     <div class="col">
-                                        <input type="text" class="form-control form-control-lg text-center py-3"
+                                        <input type="text" class="form-control form-control-lg text-center px-3 py-3"
                                                maxlength="1" inputmode="numeric" pattern="[0-9]*" data-code-input="">
                                     </div>
                                     <div class="col">
-                                        <input type="text" class="form-control form-control-lg text-center py-3"
+                                        <input type="text" class="form-control form-control-lg text-center px-3 py-3"
                                                maxlength="1" inputmode="numeric" pattern="[0-9]*" data-code-input="">
                                     </div>
                                     <div class="col">
-                                        <input type="text" class="form-control form-control-lg text-center py-3"
+                                        <input type="text" class="form-control form-control-lg text-center px-3 py-3"
                                                maxlength="1" inputmode="numeric" pattern="[0-9]*" data-code-input="">
                                     </div>
                                 </div>
@@ -100,13 +100,14 @@
     let successDialog = new bootstrap.Modal(document.getElementById('success-dialog'));
     let failDialog = new bootstrap.Modal(document.getElementById('fail-dialog'));
 
-    const {startAuthentication} = SimpleWebAuthnBrowser;
+    const {startAuthentication} =
+    SimpleWebAuthnBrowser;
     document.getElementById('webauthnLogin').addEventListener('click', async () => {
         const resp = await fetch('/auth/fido_request');
         const options = await resp.json();
         let asseResp;
         try {
-            asseResp = await startAuthentication({ optionsJSON: options });
+            asseResp = await startAuthentication({optionsJSON: options});
         } catch (error) {
             document.getElementById("fail-message").innerHTML = error;
             throw error;

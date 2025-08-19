@@ -48,7 +48,7 @@
         let attResp;
         const options = await resp.json();
         try {
-            attResp = await startRegistration({ optionsJSON: options });
+            attResp = await startRegistration({optionsJSON: options});
         } catch (error) {
             $('#error-message').text(error.message);
             $('#fail-dialog').modal('show');

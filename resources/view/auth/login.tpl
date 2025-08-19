@@ -44,11 +44,9 @@
                 </div>
             </div>
         </div>
-        {if env("REGISTER_CODE")!=''}
-            <div class="text-center text-muted mt-3">
-                还没有账户？<a href="/auth/register" tabindex="-1">前往注册</a>
-            </div>
-        {/if}
+        <div class="text-center text-muted mt-3">
+            还没有账户？<a href="/auth/register" tabindex="-1">前往注册</a>
+        </div>
     </div>
 </div>
 
@@ -62,7 +60,7 @@
         const options = await resp.json();
         let asseResp;
         try {
-            asseResp = await startAuthentication({ optionsJSON: options });
+            asseResp = await startAuthentication({optionsJSON: options});
         } catch (error) {
             Swal.fire({
                 icon: 'error',

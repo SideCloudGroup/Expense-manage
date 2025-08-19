@@ -23,19 +23,6 @@ class AdminController extends BaseController
         return view('/admin/index', ['totalPrice' => $totalPrice, 'totalPricePaid' => $totalPricePaid, 'totalPriceUnpaid' => $totalPriceUnpaid]);
     }
 
-    public function loginPage(Request $request): View
-    {
-        return view('/admin/login');
-    }
-
-    public function loginHandler(Request $request): Json
-    {
-        if ($request->param('password') !== env('ADMIN_PASSWORD')) {
-            return json(['ret' => 0, 'msg' => '管理员密码错误']);
-        }
-        session('admin', true);
-        return json(['ret' => 1, 'msg' => '登录成功'])->header(['HX-Redirect' => '/admin']);
-    }
 
     public function user(Request $request): View
     {

@@ -22,47 +22,90 @@ class UserController extends BaseController
 {
     public function invoice(Request $request): View
     {
-        $user = app()->userService->getUser();
-        $items = Db::table('item')
-            ->join('user', 'item.initiator = user.id')
-            ->where('item.userid', Session::get('userid'))
-            ->order(['item.paid', 'item.id'])
-            ->field('item.id,user.username,item.description,item.amount,item.paid,item.created_at')
+        $userId = Session::get('userid');
+
+        // 获取用户加入的所有派对及其未支付款项
+        $partiesWithItems = Db::table('party')
+            ->join('party_member', 'party.id = party_member.party_id')
+            ->leftJoin('item', 'party.id = item.party_id')
+            ->leftJoin('user payer', 'item.userid = payer.id')
+            ->leftJoin('user initiator', 'item.initiator = initiator.id')
+            ->where('party_member.user_id', $userId)
+            ->where('item.paid', 0)
+            ->where('item.userid', $userId) // 只显示当前用户需要支付的
+            ->field('party.id as party_id, party.name as party_name, party.description as party_description, 
+                    item.id as item_id, item.description as item_description, item.amount, 
+                    initiator.username as initiator_name, item.created_at')
+            ->order('party.id, item.created_at DESC')
             ->select();
-        $totalPricePaid = 0;
-        $totalPriceUnpaid = 0;
-        foreach ($items as $item) {
-            if ($item['paid'] === 1) {
-                $totalPricePaid += $item['amount'];
-            } else {
-                $totalPriceUnpaid += $item['amount'];
+
+        // 按派对分组
+        $groupedItems = [];
+        foreach ($partiesWithItems as $item) {
+            $partyId = $item['party_id'];
+            if (! isset($groupedItems[$partyId])) {
+                $groupedItems[$partyId] = [
+                    'party_name' => $item['party_name'],
+                    'party_description' => $item['party_description'],
+                    'items' => [],
+                    'total_amount' => 0
+                ];
             }
+            $groupedItems[$partyId]['items'][] = [
+                'description' => $item['item_description'],
+                'amount' => $item['amount'],
+                'username' => $item['initiator_name'],
+                'created_at' => $item['created_at']
+            ];
+            $groupedItems[$partyId]['total_amount'] += $item['amount'];
         }
-        $totalPrice = $totalPricePaid + $totalPriceUnpaid;
-        return view('/user/invoice', ['username' => $user->username, 'items' => $items, 'totalPrice' => $totalPrice, 'totalPricePaid' => $totalPricePaid, 'totalPriceUnpaid' => $totalPriceUnpaid]);
+
+        return view('/user/dashboard/invoice', ['groupedItems' => $groupedItems]);
     }
 
-    public function unpaid(Request $request): View
-    {
-        $result = app()->userService->getBestPay()[0];
-        $user = app()->userService->getUser();
-        $result = $result[$user->username] ?? [];
-        return view('/user/unpaid', ['result' => $result]);
-    }
 
     public function processAddItem(Request $request): Json
     {
         $users = json_decode($request->param('users'));
+        $partyId = $request->param('party_id');
+
         try {
             validate(\app\validate\Item::class)->check([
                 'description' => $request->param('description'),
                 'amount' => $request->param('amount'),
                 'users' => $users,
                 'unit' => $request->param('unit'),
+                'party_id' => $partyId,
             ]);
         } catch (ValidateException $e) {
             return json(['ret' => 0, 'msg' => $e->getError()]);
         }
+
+        // 验证派对权限
+        if ($partyId) {
+            $userId = Session::get('userid');
+            $isMember = Db::table('party_member')
+                ->where('party_id', $partyId)
+                ->where('user_id', $userId)
+                ->count();
+            if (! $isMember) {
+                return json(['ret' => 0, 'msg' => '您不是该派对的成员']);
+            }
+
+            // 验证提交的用户ID是否都属于该派对
+            if (! empty($users)) {
+                $partyMemberIds = Db::table('party_member')
+                    ->where('party_id', $partyId)
+                    ->column('user_id');
+
+                foreach ($users as $user) {
+                    if (! in_array((int) $user, $partyMemberIds)) {
+                        return json(['ret' => 0, 'msg' => "用户ID {$user} 不属于该派对"]);
+                    }
+                }
+            }
+        }
+
         $baseCurrency = app()->currencyService->getDefaultCurrency();
         $exchangeRate = app()->currencyService->getExchangeRate();
         if ($request->param('unit') === $baseCurrency) {
@@ -70,31 +113,256 @@ class UserController extends BaseController
         } else {
             $amount = $request->param('amount') / $exchangeRate[$request->param('unit')];
         }
+
         foreach ($users as $user) {
-            app()->userService->addItem((int) $user, $request->param('description'), (float) $amount, session('userid'));
+            app()->userService->addItem((int) $user, $request->param('description'), (float) $amount, session('userid'), (int) $partyId);
         }
-        return json(['ret' => 1, 'msg' => '添加成功'])->header(['HX-Refresh' => 'true']);
+        return json(['ret' => 1, 'msg' => '添加成功'])->header(['HX-Refresh' => "true"]);
     }
 
     public function addItem(Request $request): View
     {
-        $users = $this->app->userService->getUserList();
+        $userId = Session::get('userid');
+
+        // 获取用户加入的所有Party
+        $parties = Db::table('party')
+            ->join('party_member', 'party.id = party_member.party_id')
+            ->where('party_member.user_id', $userId)
+            ->field('party.id, party.name, party.description')
+            ->select();
+
         $currencies = $this->app->currencyService->getExchangeRate();
-        return view('/user/addItem', ['users' => $users, 'currencies' => $currencies]);
+
+        return view('/user/item/add', [
+            'parties' => $parties,
+            'currencies' => $currencies
+        ]);
+    }
+
+    /**
+     * 首页 - 显示统计信息和概览
+     */
+    public function index(Request $request): View
+    {
+        $userId = Session::get('userid');
+        $user = app()->userService->getUser();
+
+        // 获取用户加入的所有派对
+        $parties = Db::table('party')
+            ->join('party_member', 'party.id = party_member.party_id')
+            ->where('party_member.user_id', $userId)
+            ->field('party.id, party.name, party.description')
+            ->select()
+            ->toArray();
+
+        // 统计信息
+        $stats = [
+            'total_parties' => count($parties),
+            'total_unpaid_amount' => 0,
+            'total_receivable_amount' => 0,
+            'total_items_created' => 0,
+            'total_items_to_pay' => 0
+        ];
+
+        // 计算各项统计
+        foreach ($parties as $party) {
+            // 未支付金额（需要支付的）
+            $unpaidAmount = Db::table('item')
+                ->where('party_id', $party['id'])
+                ->where('userid', $userId)
+                ->where('paid', 0)
+                ->sum('amount');
+            $stats['total_unpaid_amount'] += $unpaidAmount ? : 0;
+
+            // 应收金额（创建的收款）
+            $receivableAmount = Db::table('item')
+                ->where('party_id', $party['id'])
+                ->where('initiator', $userId)
+                ->where('paid', 0)
+                ->sum('amount');
+            $stats['total_receivable_amount'] += $receivableAmount ? : 0;
+
+            // 创建的项目数量
+            $itemsCreated = Db::table('item')
+                ->where('party_id', $party['id'])
+                ->where('initiator', $userId)
+                ->count();
+            $stats['total_items_created'] += $itemsCreated;
+
+            // 需要支付的项目数量
+            $itemsToPay = Db::table('item')
+                ->where('party_id', $party['id'])
+                ->where('userid', $userId)
+                ->where('paid', 0)
+                ->count();
+            $stats['total_items_to_pay'] += $itemsToPay;
+        }
+
+        // 计算衍生统计数据
+        $stats['total_amount'] = $stats['total_unpaid_amount'] + $stats['total_receivable_amount'];
+        $stats['total_items'] = $stats['total_items_created'] + $stats['total_items_to_pay'];
+
+        // 计算百分比
+        if ($stats['total_amount'] > 0) {
+            $stats['unpaid_percentage'] = round(($stats['total_unpaid_amount'] / $stats['total_amount']) * 100, 1);
+            $stats['receivable_percentage'] = round(($stats['total_receivable_amount'] / $stats['total_amount']) * 100, 1);
+        } else {
+            $stats['unpaid_percentage'] = 0;
+            $stats['receivable_percentage'] = 0;
+        }
+
+        // 获取最近的5个派对
+        $recentParties = array_slice($parties, 0, 5);
+
+        return view('/user/dashboard/index', [
+            'user' => $user,
+            'parties' => $parties,
+            'stats' => $stats,
+            'recentParties' => $recentParties
+        ]);
     }
 
     public function payment(Request $request): View
     {
-        // 当前用户需要支付的
-        $items = Db::table('item')->join('user', 'item.initiator = user.id')->where('item.userid', Session::get('userid'))->where('item.paid', 0)->order(['item.paid', 'item.id'])->field('item.id,user.username,item.description,item.amount,item.paid,item.created_at')->select();
-        return view('/user/payment', ['items' => $items]);
+        $userId = Session::get('userid');
+
+        // 获取用户加入的所有派对，并计算每个派对的待支付总金额
+        $parties = Db::table('party')
+            ->join('party_member', 'party.id = party_member.party_id')
+            ->where('party_member.user_id', $userId)
+            ->field('party.id, party.name, party.description')
+            ->select()
+            ->toArray();
+
+        // 为每个派对计算待支付总金额
+        foreach ($parties as $key => $party) {
+            $totalAmount = Db::table('item')
+                ->where('party_id', $party['id'])
+                ->where('userid', $userId)
+                ->where('paid', 0)
+                ->sum('amount');
+            $parties[$key]['total_amount'] = $totalAmount ? : 0;
+
+            // 调试每个派对的查询
+            trace("Party {$party['id']} ({$party['name']}): totalAmount = {$totalAmount}", 'debug');
+        }
+
+        return view('/user/payment/list', ['parties' => $parties]);
+    }
+
+    public function paymentByParty(Request $request, int $partyId): View
+    {
+        $userId = Session::get('userid');
+
+        // 验证用户是否为该派对成员
+        $isMember = Db::table('party_member')
+            ->where('party_id', $partyId)
+            ->where('user_id', $userId)
+            ->count();
+        if (! $isMember) {
+            return view('/404');
+        }
+
+        // 获取派对信息
+        $party = Db::table('party')->where('id', $partyId)->find();
+
+        // 获取当前用户在该派对中需要支付的款项
+        $items = Db::table('item')
+            ->join('user', 'item.initiator = user.id')
+            ->where('item.party_id', $partyId)
+            ->where('item.userid', $userId)
+            ->where('item.paid', 0)
+            ->field('item.id, user.username, item.description, item.amount, item.paid, item.created_at')
+            ->order('item.created_at DESC')
+            ->select();
+
+        // 计算总金额
+        $totalAmount = 0;
+        foreach ($items as $item) {
+            $totalAmount += $item['amount'];
+        }
+
+        return view('/user/payment/by_party', [
+            'party' => $party,
+            'items' => $items,
+            'totalAmount' => $totalAmount
+        ]);
     }
 
     public function itemList(Request $request): View
     {
-        // 当前用户发起的
-        $items = Db::table('item')->join('user', 'item.userid = user.id')->order('item.paid')->where('initiator', Session::get('userid'))->order(['item.paid', 'item.id'])->field('item.id,user.username,item.description,item.amount,item.paid,item.created_at')->select();
-        return view('/user/item', ['items' => $items]);
+        $userId = Session::get('userid');
+
+        // 获取用户加入的所有派对，并计算每个派对的未收款总金额
+        $parties = Db::table('party')
+            ->join('party_member', 'party.id = party_member.party_id')
+            ->where('party_member.user_id', $userId)
+            ->field('party.id, party.name, party.description')
+            ->select()
+            ->toArray();
+
+        // 为每个派对计算未收款总金额
+        foreach ($parties as $key => $party) {
+            $totalAmount = Db::table('item')
+                ->where('party_id', $party['id'])
+                ->where('initiator', $userId)
+                ->where('paid', 0)
+                ->sum('amount');
+            $parties[$key]['total_amount'] = $totalAmount ? : 0;
+
+            // 调试每个派对的查询
+            trace("Party {$party['id']} ({$party['name']}): totalAmount = {$totalAmount}", 'debug');
+        }
+
+        return view('/user/item/list', ['parties' => $parties]);
+    }
+
+    public function itemListByParty(Request $request, int $partyId): View
+    {
+        $userId = Session::get('userid');
+
+        // 验证用户是否为该派对成员
+        $isMember = Db::table('party_member')
+            ->where('party_id', $partyId)
+            ->where('user_id', $userId)
+            ->count();
+        if (! $isMember) {
+            return view('/404');
+        }
+
+        // 获取派对信息
+        $party = Db::table('party')->where('id', $partyId)->find();
+
+        // 获取当前用户在该派对中发起的款项
+        $items = Db::table('item')
+            ->join('user', 'item.userid = user.id')
+            ->where('item.party_id', $partyId)
+            ->where('item.initiator', $userId)
+            ->field('item.id, user.username, item.description, item.amount, item.paid, item.created_at')
+            ->order('item.paid, item.created_at DESC')
+            ->select();
+
+        // 计算金额统计
+        $totalAmount = 0;
+        $paidAmount = 0;
+        $unpaidAmount = 0;
+
+        foreach ($items as $item) {
+            $totalAmount += $item['amount'];
+            if ($item['paid']) {
+                $paidAmount += $item['amount'];
+            } else {
+                $unpaidAmount += $item['amount'];
+            }
+        }
+
+        return view('/user/item/by_party', [
+            'party' => $party,
+            'items' => $items,
+            'totalAmount' => $totalAmount,
+            'paidAmount' => $paidAmount,
+            'unpaidAmount' => $unpaidAmount
+        ]);
     }
 
     public function updateItemStatus(Request $request): Json
@@ -103,6 +371,17 @@ class UserController extends BaseController
         if ($item->isEmpty()) {
             return json(['ret' => 0, 'msg' => '未找到指定项目'])->header(['HX-Refresh' => 'true']);
         }
+
+        // 验证用户是否为该收款项所属派对的成员
+        $userId = session('userid');
+        $isMember = Db::table('party_member')
+            ->where('party_id', $item->party_id)
+            ->where('user_id', $userId)
+            ->count();
+        if (! $isMember) {
+            return json(['ret' => 0, 'msg' => '您不是该派对的成员'])->header(['HX-Refresh' => 'true']);
+        }
+
         $item->paid = $request->param('paid');
         $item->save();
         return json(['ret' => 1, 'msg' => '更新成功'])->header(['HX-Refresh' => 'true']);
@@ -115,7 +394,7 @@ class UserController extends BaseController
         foreach ($exchangeRate as $currency => $rate) {
             $exchangeRate[$currency] = round(1 / $rate, 3);
         }
-        return view('/user/currency', ['baseCurrency' => $baseCurrency, 'currencies' => $exchangeRate]);
+        return view('/user/account/currency', ['baseCurrency' => $baseCurrency, 'currencies' => $exchangeRate]);
     }
 
     public function logout(Request $request): Json
@@ -132,7 +411,7 @@ class UserController extends BaseController
         $webauthnDevices = (new MFACredential())->where('userid', $user->id)->where('type', 'passkey')->select();
         $totpDevices = (new MFACredential())->where('userid', $user->id)->where('type', 'totp')->select();
         $fidoDevices = (new MFACredential())->where('userid', $user->id)->where('type', 'fido')->select();
-        return view('/user/profile', [
+        return view('/user/account/profile', [
             'user' => $user,
             'webauthn_devices' => $webauthnDevices,
             'totp_devices' => $totpDevices,
@@ -143,6 +422,12 @@ class UserController extends BaseController
     public function updateProfile(Request $request): Json
     {
         $user = app()->userService->getUser();
+
+        // 验证用户只能更新自己的资料
+        if ($user->id != session('userid')) {
+            return json(['ret' => 0, 'msg' => '无权限更新其他用户资料'])->header(['HX-Refresh' => 'true']);
+        }
+
         $user->username = $request->param('username');
         $user->save();
         return json(['ret' => 1, 'msg' => '更新成功'])->header(['HX-Refresh' => 'true']);

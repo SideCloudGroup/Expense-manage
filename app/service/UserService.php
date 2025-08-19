@@ -49,7 +49,7 @@ class UserService extends Service
         return ['ret' => 1, 'data' => $userDetails, 'totalPrice' => $totalPrice];
     }
 
-    public function addItem(int $userID, string $description, float $amount, int $initiator): bool
+    public function addItem(int $userID, string $description, float $amount, int $initiator, ?int $partyId = null): bool
     {
         $item = new Item();
         $item->userid = $userID;
@@ -58,6 +58,7 @@ class UserService extends Service
         $item->paid = $userID === $initiator;
         $item->created_at = date('Y-m-d H:i:s');
         $item->initiator = $initiator;
+        $item->party_id = $partyId;
         return $item->save();
     }
 

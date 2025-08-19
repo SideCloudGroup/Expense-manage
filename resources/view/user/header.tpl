@@ -47,7 +47,7 @@
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="/user/unpaid">
+                    <a class="nav-link" href="/user/invoice">
                         <span class="nav-link-icon d-md-none d-lg-inline-block">
                             <i class="fa-solid fa-calculator"></i>
                         </span>
@@ -63,6 +63,16 @@
                         </span>
                         <span class="nav-link-title">
                             查询当前汇率
+                        </span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/user/party">
+                        <span class="nav-link-icon d-md-none d-lg-inline-block">
+                            <i class="fa-solid fa-users"></i>
+                        </span>
+                        <span class="nav-link-title">
+                            我的派对
                         </span>
                     </a>
                 </li>

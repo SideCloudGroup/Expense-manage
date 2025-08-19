@@ -14,9 +14,28 @@ use think\Model;
  * @property double $amount
  * @property bool $paid
  * @property int $initiator
+ * @property int $party_id
  */
 class Item extends Model
 {
     protected $table = 'item';
     protected $pk = 'id';
+
+    // 关联Party
+    public function party()
+    {
+        return $this->belongsTo(Party::class, 'party_id');
+    }
+
+    // 关联用户（付款人）
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'userid');
+    }
+
+    // 关联发起人
+    public function initiator()
+    {
+        return $this->belongsTo(User::class, 'initiator');
+    }
 }
