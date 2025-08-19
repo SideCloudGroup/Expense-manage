@@ -1,5 +1,5 @@
 {include file="/user/header"}
-<title>{:env('APP_NAME')} - {$party.name}</title>
+<title>{:getSetting('general_name')} - {$party.name}</title>
 
 <div class="page">
     <div class="page-wrapper">

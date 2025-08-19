@@ -30,7 +30,7 @@ class TOTP
 
     public static function getGaUrl(User $user, string $token): string
     {
-        return 'otpauth://totp/' . rawurlencode(env('APP_NAME')) . ':' . rawurlencode($user->username) . '?secret=' . $token . '&issuer=' . rawurlencode(env('APP_NAME'));
+        return 'otpauth://totp/' . rawurlencode(getSetting('general_name')) . ':' . rawurlencode($user->username) . '?secret=' . $token . '&issuer=' . rawurlencode(getSetting('general_name'));
     }
 
     public static function totpRegisterHandle(User $user, string $code): array

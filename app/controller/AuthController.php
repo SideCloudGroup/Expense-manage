@@ -38,6 +38,12 @@ class AuthController extends BaseController
         } catch (ValidateException $e) {
             return json(['ret' => 0, 'msg' => $e->getError()]);
         }
+        if (! app()->userService->verifyCaptcha($request)) {
+            return json([
+                'ret' => 0,
+                'msg' => '验证码错误或已过期，请刷新页面后重试',
+            ]);
+        }
         $user = (new User())->where('username', $data['username'])->findOrEmpty();
         if ($user->isEmpty()) {
             return json(['ret' => 0, 'msg' => '用户不存在']);
@@ -93,11 +99,12 @@ class AuthController extends BaseController
             'username' => $antixss->xss_clean($request->param('username')),
             'password' => $antixss->xss_clean($request->param('password')),
             'confirm_password' => $antixss->xss_clean($request->param('confirm_password')),
-            'captcha' => $antixss->xss_clean($request->param('captcha')),
         ];
-        # 验证码
-        if (! captcha_check($data['captcha'])) {
-            return json(['ret' => 0, 'msg' => '验证码错误']);
+        if (! app()->userService->verifyCaptcha($request)) {
+            return json([
+                'ret' => 0,
+                'msg' => '验证码错误或已过期，请刷新页面后重试',
+            ]);
         }
         # 密码
         if ($data['password'] !== $data['confirm_password']) {

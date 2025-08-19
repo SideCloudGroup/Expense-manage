@@ -39,7 +39,10 @@
         "voku/anti-xss": "^4.1.42",
         "web-auth/webauthn-framework": "^5.0",
         "vectorface/googleauthenticator": "^v3.4",
-        "topthink/think-validate": "v3.0.7"
+        "topthink/think-validate": "v3.0.7",
+        "seanhayes-com/laravel-hcaptcha": "^1.2",
+        "usarise/turnstile": "^0.7.1",
+        "ext-bcmath": "*"
     },
     "require-dev": {
         "symfony/var-dumper": ">=4.2",

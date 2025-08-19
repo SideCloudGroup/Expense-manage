@@ -26,18 +26,78 @@ class AdminController extends BaseController
 
     public function user(Request $request): View
     {
-        $users = (new User())->field('id,username')->select();
+        $users = (new User())->field('id,username,is_admin')->select();
         return view('/admin/user', ['users' => $users]);
     }
 
-    public function addUser(Request $request): Json
+    /**
+     * 修改用户密码
+     */
+    public function changePassword(Request $request): Json
     {
-        $user = new User();
-        $user->username = $request->param('username');
-        $user->password = password_hash($request->param('password'), PASSWORD_ARGON2ID);
-        $user->uuid = Uuid::uuid4()->toString();
-        $user->save();
-        return json(['ret' => 1, 'msg' => '用户已添加'])->header(['HX-Refresh' => 'true']);
+        $data = $request->param();
+        $userId = $data['user_id'] ?? null;
+        $newPassword = $data['new_password'] ?? null;
+        
+        if (!$userId || !$newPassword) {
+            return json(['ret' => 0, 'msg' => '参数不完整']);
+        }
+        
+        // 验证密码长度
+        if (strlen($newPassword) < 6) {
+            return json(['ret' => 0, 'msg' => '密码长度至少6位']);
+        }
+        
+        try {
+            $user = User::find($userId);
+            if (!$user) {
+                return json(['ret' => 0, 'msg' => '用户不存在']);
+            }
+            
+            // 更新密码
+            $user->password = password_hash($newPassword, PASSWORD_ARGON2ID);
+            $user->save();
+            
+            return json(['ret' => 1, 'msg' => '密码修改成功']);
+        } catch (\Exception $e) {
+            return json(['ret' => 0, 'msg' => '密码修改失败：' . $e->getMessage()]);
+        }
+    }
+
+    /**
+     * 切换用户管理员权限
+     */
+    public function toggleAdmin(Request $request): Json
+    {
+        $data = $request->param();
+        $userId = $data['user_id'] ?? null;
+        $setAsAdmin = $data['set_as_admin'] ?? null;
+        
+        if ($userId === null || $setAsAdmin === null) {
+            return json(['ret' => 0, 'msg' => '参数不完整']);
+        }
+        
+        try {
+            $user = User::find($userId);
+            if (!$user) {
+                return json(['ret' => 0, 'msg' => '用户不存在']);
+            }
+            
+            // 检查是否为当前登录的管理员
+            $currentUser = User::find(session('userid'));
+            if ($currentUser && $currentUser->id == $userId) {
+                return json(['ret' => 0, 'msg' => '不能修改自己的管理员权限']);
+            }
+            
+            // 更新管理员权限
+            $user->is_admin = (bool)$setAsAdmin;
+            $user->save();
+            
+            $action = $setAsAdmin ? '设为管理员' : '取消管理员权限';
+            return json(['ret' => 1, 'msg' => "用户权限已更新：{$action}"]);
+        } catch (\Exception $e) {
+            return json(['ret' => 0, 'msg' => '权限更新失败：' . $e->getMessage()]);
+        }
     }
 
     public function itemList(Request $request): View
@@ -115,5 +175,34 @@ class AdminController extends BaseController
     {
         Db::table('item')->delete(true);
         return json(['ret' => 1, 'msg' => "已清空数据库"])->header(['HX-Refresh' => 'true']);
+    }
+
+    public function settings(): View
+    {
+        $settings = app()->settingService->getAllSettings();
+        $settingData = [];
+        $categories = [];
+
+        foreach ($settings as $category => $items) {
+            $categories[] = $category;
+            foreach ($items as $item) {
+                $key = $item['key'];
+                $settingData[$key] = app()->settingService->getSetting($key);
+            }
+        }
+        return view('/admin/setting/index', [
+            'settings' => $settings,
+            'settingData' => $settingData,
+            'categories' => $categories,
+        ]);
+    }
+
+    public function updateSetting(Request $request): Json
+    {
+        $data = $request->param();
+        foreach ($data as $key => $value) {
+            app()->settingService->updateSetting($key, $value);
+        }
+        return json(['ret' => 1, 'msg' => "设置已更新"]);
     }
 }

@@ -1,6 +1,6 @@
 {include file='/user/header'}
 
-<title>{:env('APP_NAME')} - 总未支付款项</title>
+<title>{:getSetting('general_name')} - 总未支付款项</title>
 <div class="page">
     <div class="page-wrapper">
         <div class="page-header d-print-none">

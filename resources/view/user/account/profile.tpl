@@ -1,6 +1,6 @@
 {include file='/user/header'}
 
-<title>{:env('APP_NAME')} - 个人信息</title>
+<title>{:getSetting('general_name')} - 个人信息</title>
 
 <script src="https://unpkg.com/@simplewebauthn/browser/dist/bundle/index.umd.min.js"></script>
 

@@ -1,5 +1,5 @@
 {include file="/user/header"}
-<title>{:env('APP_NAME')} - {$party.name} - 需支付的款项</title>
+<title>{:getSetting('general_name')} - {$party.name} - 需支付的款项</title>
 
 <div class="page">
     <div class="page-wrapper">

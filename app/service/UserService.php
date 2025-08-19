@@ -5,8 +5,17 @@ namespace app\service;
 
 use app\model\Item;
 use app\model\User;
+use app\Request;
+use Exception;
+use GuzzleHttp\Client as GuzzleHttpClient;
+use GuzzleHttp\Psr7\HttpFactory;
+use HCaptcha\HCaptcha;
 use think\facade\Db;
+use think\facade\Log;
 use think\Service;
+use Turnstile\Client\Client;
+use Turnstile\Turnstile;
+use voku\helper\AntiXSS;
 
 class UserService extends Service
 {
@@ -210,5 +219,67 @@ class UserService extends Service
         }
         $user->save();
         return array('ret' => 1, 'msg' => '更新成功');
+    }
+
+    public function verifyCaptcha(Request $request): bool
+    {
+        try {
+            $antixss = new AntiXSS();
+            switch (getSetting('captcha_driver', 'none')) {
+                case 'numeric':
+                {
+                    return captcha_check($antixss->xss_clean($request->param('captcha')));
+                }
+                case 'turnstile':
+                {
+                    $turnstile = new Turnstile(
+                        client: (new Client(
+                            new GuzzleHttpClient(),
+                            new HttpFactory(),
+                        )),
+                        secretKey: getSetting('captcha_siteSecret'),
+                    );
+                    $response = $turnstile->verify(
+                        $antixss->xss_clean($request->param('cf-turnstile-response', '')),
+                        $request->server('REMOTE_ADDR'),
+                    );
+                    return $response->success;
+                }
+                case 'hcaptcha':
+                {
+                    $hcaptcha = new HCaptcha(getSetting('captcha_siteSecret'));
+                    $resp = $hcaptcha->verify(
+                        $antixss->xss_clean($request->param('h-captcha-response', '')),
+                        $request->server('REMOTE_ADDR'));
+                    return $resp->isSuccess();
+                }
+                case 'cap':
+                {
+                    $siteURL = getSetting('captcha_customUrl');
+                    $siteKey = getSetting('captcha_siteKey');
+                    $siteSecret = getSetting('captcha_siteSecret');
+                    $captcha_token = $antixss->xss_clean($request->param('cap-token', ''));
+                    $client = new GuzzleHttpClient();
+                    $response = $client->post("$siteURL/$siteKey/siteverify", [
+                        'headers' => [
+                            'Content-Type' => 'application/json',
+                        ],
+                        'json' => [
+                            'secret' => $siteSecret,
+                            'response' => $captcha_token,
+                        ],
+                    ]);
+                    $result = json_decode($response->getBody()->getContents(), true);
+                    return $result['success'] ?? false;
+                }
+                default:
+                {
+                    return true;
+                }
+            }
+        } catch (Exception $e) {
+            Log::error("Captcha Error:" . $e->getMessage());
+            return false;
+        }
     }
 }

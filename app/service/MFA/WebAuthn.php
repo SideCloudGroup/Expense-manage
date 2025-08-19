@@ -67,7 +67,7 @@ class WebAuthn
 
     public static function generateRPEntity(): PublicKeyCredentialRpEntity
     {
-        return PublicKeyCredentialRpEntity::create(env('APP_NAME'), Request::host());
+        return PublicKeyCredentialRpEntity::create(getSetting('general_name'), Request::host());
     }
 
     public static function generateUserEntity(User $user): PublicKeyCredentialUserEntity

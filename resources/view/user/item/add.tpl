@@ -1,5 +1,5 @@
 {include file="/user/header"}
-<title>{:env('APP_NAME')} - 添加项目</title>
+<title>{:getSetting('general_name')} - 添加项目</title>
 
 <div class="page">
     <div class="page-wrapper">

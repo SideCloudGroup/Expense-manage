@@ -75,11 +75,14 @@ Route::group('/admin', function () {
     Route::get('', 'admin/index');
     Route::get('/', 'admin/index');
     Route::get('/user', 'admin/user');
-    Route::post('/user', 'admin/addUser');
+    Route::post('/user/change-password', 'admin/changePassword');
+    Route::post('/user/toggle-admin', 'admin/toggleAdmin');
     Route::post('/item/:id', 'admin/updateItemStatus');
     Route::delete('/item/:id', 'admin/itemDelete');
     Route::get('/item', 'admin/itemList');
     Route::get('/total/download', 'admin/downloadBestPay');
     Route::post('/total/clear', 'admin/clearBestPay');
     Route::get('/total', 'admin/bestPay');
+    Route::get('setting', 'admin/settings');
+    Route::post('setting', 'admin/updateSetting');
 })->middleware(Admin::class);

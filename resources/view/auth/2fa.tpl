@@ -1,6 +1,6 @@
 <script src="https://unpkg.com/@simplewebauthn/browser/dist/bundle/index.umd.min.js"></script>
 
-<title>{:env('APP_NAME')} - 二步验证</title>
+<title>{:getSetting('general_name')} - 二步验证</title>
 
 <body class="border-top-wide border-primary d-flex flex-column">
 <div class="page page-center">
@@ -100,14 +100,14 @@
     let successDialog = new bootstrap.Modal(document.getElementById('success-dialog'));
     let failDialog = new bootstrap.Modal(document.getElementById('fail-dialog'));
 
-    const {startAuthentication} =
+    const { startAuthentication } =
     SimpleWebAuthnBrowser;
     document.getElementById('webauthnLogin').addEventListener('click', async () => {
         const resp = await fetch('/auth/fido_request');
         const options = await resp.json();
         let asseResp;
         try {
-            asseResp = await startAuthentication({optionsJSON: options});
+            asseResp = await startAuthentication({ optionsJSON: options });
         } catch (error) {
             document.getElementById("fail-message").innerHTML = error;
             throw error;
