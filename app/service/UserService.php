@@ -65,7 +65,21 @@ class UserService extends Service
         $item->description = $description;
         $item->amount = $amount;
         $item->paid = $userID === $initiator;
-        $item->created_at = date('Y-m-d H:i:s');
+        
+        // 使用派对时区创建时间
+        if ($partyId) {
+            $party = \app\model\Party::find($partyId);
+            if ($party && $party->timezone) {
+                $timezone = new \DateTimeZone($party->timezone);
+                $now = new \DateTime('now', $timezone);
+                $item->created_at = $now->format('Y-m-d H:i:s');
+            } else {
+                $item->created_at = date('Y-m-d H:i:s');
+            }
+        } else {
+            $item->created_at = date('Y-m-d H:i:s');
+        }
+        
         $item->initiator = $initiator;
         $item->party_id = $partyId;
         return $item->save();

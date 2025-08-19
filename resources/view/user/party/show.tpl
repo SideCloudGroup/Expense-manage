@@ -62,6 +62,11 @@
                             </div>
 
                             <div class="mb-3">
+                                <label class="form-label">时区设置</label>
+                                <div class="form-control-plaintext">{:formatTimezone($party.timezone)}</div>
+                            </div>
+
+                            <div class="mb-3">
                                 <label class="form-label">创建时间</label>
                                 <div class="form-control-plaintext">{$party.created_at}</div>
                             </div>

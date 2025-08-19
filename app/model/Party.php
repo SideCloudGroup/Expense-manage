@@ -13,6 +13,7 @@ use think\Model;
  * @property string $description
  * @property string $invite_code
  * @property int $owner_id
+ * @property string $timezone
  * @property string $created_at
  * @property string $updated_at
  */

@@ -6,6 +6,8 @@ namespace app\controller;
 use app\BaseController;
 use app\model\Party;
 use app\model\PartyMember;
+use DateTime;
+use DateTimeZone;
 use Exception;
 use think\facade\Db;
 use think\facade\Session;
@@ -63,9 +65,16 @@ class PartyController extends BaseController
     {
         $name = $request->param('name');
         $description = $request->param('description', '');
+        $timezone = $request->param('timezone', 'Asia/Shanghai');
 
         if (empty($name)) {
             return json(['ret' => 0, 'msg' => '派对名称不能为空']);
+        }
+
+        // 验证时区
+        $timezone = trim($timezone);
+        if (!in_array($timezone, timezone_identifiers_list())) {
+            return json(['ret' => 0, 'msg' => '无效的时区标识符：' . $timezone]);
         }
 
         try {
@@ -75,6 +84,7 @@ class PartyController extends BaseController
             $party = new Party();
             $party->name = $name;
             $party->description = $description;
+            $party->timezone = $timezone;
             $party->invite_code = Party::generateInviteCode();
             $party->owner_id = Session::get('userid');
             $party->save();
@@ -306,5 +316,70 @@ class PartyController extends BaseController
             Db::rollback();
             return json(['ret' => 0, 'msg' => '删除失败：' . $e->getMessage()]);
         }
+    }
+
+    /**
+     * 验证时区标识符
+     */
+    public function validateTimezone(Request $request): Json
+    {
+        $timezone = $request->param('timezone');
+        
+        if (empty($timezone)) {
+            return json(['ret' => 0, 'msg' => '时区不能为空']);
+        }
+
+        $timezone = trim($timezone);
+        
+        // 使用PHP内置函数验证时区
+        if (!in_array($timezone, timezone_identifiers_list())) {
+            return json(['ret' => 0, 'msg' => '无效的时区标识符']);
+        }
+
+        try {
+            // 创建时区对象并获取当前偏移量
+            $dateTimeZone = new DateTimeZone($timezone);
+            $dateTime = new DateTime('now', $dateTimeZone);
+            $offset = $dateTime->format('P');
+            
+            return json([
+                'ret' => 1, 
+                'msg' => '时区有效', 
+                'timezone' => $timezone,
+                'current_offset' => $offset,
+                'is_dst' => $dateTime->format('I') == '1'
+            ]);
+        } catch (Exception $e) {
+            return json(['ret' => 0, 'msg' => '时区验证失败：' . $e->getMessage()]);
+        }
+    }
+
+    /**
+     * 搜索时区建议
+     */
+    public function searchTimezones(Request $request): Json
+    {
+        $query = $request->param('query', '');
+        
+        if (strlen($query) < 2) {
+            return json(['ret' => 0, 'msg' => '搜索关键词至少2个字符']);
+        }
+
+        // 获取所有可用时区
+        $allTimezones = timezone_identifiers_list();
+        
+        // 过滤匹配的时区
+        $filtered = array_filter($allTimezones, function($tz) use ($query) {
+            return stripos($tz, $query) !== false;
+        });
+
+        // 限制返回数量
+        $filtered = array_slice($filtered, 0, 20);
+
+        return json([
+            'ret' => 1,
+            'timezones' => $filtered,
+            'count' => count($filtered)
+        ]);
     }
 }

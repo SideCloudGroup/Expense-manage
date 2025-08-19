@@ -31,7 +31,7 @@ Route::rule('/', 'user/index')->middleware(User::class);
 Route::group('/user', function () {
     Route::get('', 'user/index');
     Route::get('/', 'user/index');
-    
+
     Route::get('/payment/party/:partyId', 'user/paymentByParty');
     Route::get('/payment', 'user/payment');
     Route::get('/item/add', 'user/addItem');
@@ -65,6 +65,8 @@ Route::group('/user', function () {
     Route::post('/party/join', 'party/joinParty');
     Route::get('/party/:id/users', 'party/getMembers');
     Route::post('/party/:id/leave', 'party/leave');
+    Route::post('/party/validate-timezone', 'party/validateTimezone');
+    Route::get('/party/search-timezones', 'party/searchTimezones');
     Route::delete('/party/:id', 'party/destroy');
     Route::get('/party/:id', 'party/show');
     Route::get('/party', 'party/index');
