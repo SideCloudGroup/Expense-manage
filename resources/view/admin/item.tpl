@@ -30,17 +30,21 @@
                                             <td>{$item.id}</td>
                                             <td>{$item.username}</td>
                                             <td>{$item.description}</td>
-                                            <td>{$item.amount}</td>
+                                            <td>{:getUnitSign()}{$item.amount}</td>
                                             <td>
                                                 {if $item.paid}
-                                                    <span class="badge bg-green text-green-fg btn"
+                                                    <span class="badge bg-green text-green-fg"
                                                           hx-post="/admin/item/{$item.id}" hx-trigger="click"
-                                                          hx-vals='{"paid": 0}'>已支付</span>
+                                                          hx-vals='{"paid": 0}'
+                                                          hx-confirm="确定要将{$item.description}的记录标记为未支付吗？"
+                                                    >已支付</span>
                                                 {else}
-                                                    <span class="badge bg-red text-red-fg btn"
+                                                    <span class="badge bg-red text-red-fg"
                                                           hx-post="/admin/item/{$item.id}"
                                                           hx-trigger="click"
-                                                          hx-vals='{"paid": 1}'>未支付</span>
+                                                          hx-vals='{"paid": 1}'
+                                                          hx-confirm="确定要将{$item.description}的记录标记为已支付吗？"
+                                                    >未支付</span>
                                                 {/if}
                                             </td>
                                             <td>{$item.created_at}</td>

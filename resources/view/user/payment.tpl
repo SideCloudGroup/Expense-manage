@@ -27,7 +27,7 @@
                                         <tr>
                                             <td>{$item.id}</td>
                                             <td>{$item.description}</td>
-                                            <td>{$item.amount}</td>
+                                            <td>{:getUnitSign()}{$item.amount}</td>
                                             <td>{$item.username}</td>
                                             <td>{$item.created_at}</td>
                                         </tr>

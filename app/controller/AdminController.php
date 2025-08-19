@@ -9,6 +9,7 @@ use app\model\User;
 use Ramsey\Uuid\Uuid;
 use think\facade\Db;
 use think\Request;
+use think\Response;
 use think\response\Json;
 use think\response\View;
 
@@ -97,5 +98,35 @@ class AdminController extends BaseController
         $bestPay = $this->app->userService->getBestPay();
         $userStat = $this->app->userService->getUserStat();
         return view('/admin/bestpay', ['bestPayAll' => $bestPay[1], 'bestPayFinal' => $bestPay[0], 'userStat' => $userStat]);
+    }
+
+    /**
+     * 下载最优支付方案
+     */
+    public function downloadBestPay(Request $request): Response
+    {
+        // 获取最优支付方案和用户统计
+        $bestPay = $this->app->userService->getBestPay();
+        $userStat = $this->app->userService->getUserStat();
+        $data = [
+            'bestPayFinal' => $bestPay[0],
+            'userStat' => $userStat
+        ];
+        $json = json_encode($data, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
+        $filename = 'bestpay_' . date('Ymd_His') . '.json';
+        header('Content-Type: application/json');
+        header('Content-Disposition: attachment; filename="' . $filename . '"');
+        header('Pragma: no-cache');
+        header('Expires: 0');
+        return response($json);
+    }
+
+    /**
+     * 清空所有待支付记录
+     */
+    public function clearBestPay(Request $request): Json
+    {
+        Db::table('item')->delete(true);
+        return json(['ret' => 1, 'msg' => "已清空数据库"])->header(['HX-Refresh' => 'true']);
     }
 }

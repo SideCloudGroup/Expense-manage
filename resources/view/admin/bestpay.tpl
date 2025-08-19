@@ -9,13 +9,20 @@
                     <div class="card">
                         <div class="card-header">
                             <h3 class="card-title">最优支付</h3>
+                            <a class="btn btn-primary ms-3" href="/admin/total/download"
+                               target="_blank">下载待支付记录</a>
+                            <button class="btn btn-danger ms-2"
+                                    hx-post="/admin/total/clear"
+                                    hx-confirm="此操作会清空数据库中所有待支付记录，是否继续？"
+                                    hx-swap="none"
+                            >清空待支付记录
+                            </button>
                         </div>
                         <div class="card-body">
                             <div class="row">
                                 {volist name="bestPayFinal" id="user" key="username1"}
                                     <div class="col-md-4 mb-3">
                                         <div class="card">
-
                                             <div class="card-header">
                                                 <div>
                                                     <div class="row align-items-center">

@@ -65,6 +65,8 @@ Route::group('/admin', function () {
     Route::post('/item/:id', 'admin/updateItemStatus');
     Route::delete('/item/:id', 'admin/itemDelete');
     Route::get('/item', 'admin/itemList');
+    Route::get('/total/download', 'admin/downloadBestPay');
+    Route::post('/total/clear', 'admin/clearBestPay');
     Route::get('/total', 'admin/bestPay');
     Route::get('/login', 'admin/loginPage');
     Route::post('/login', 'admin/loginHandler');

@@ -24,14 +24,5 @@
                 text: res.msg
             });
         }
-
-        if (evt.detail.xhr.getResponseHeader('HX-Redirect')) {
-            return;
-        }
-        if (evt.detail.xhr.getResponseHeader('HX-Refresh')) {
-            setTimeout(function () {
-                location.reload();
-            }, timeout);
-        }
     });
 </script>
