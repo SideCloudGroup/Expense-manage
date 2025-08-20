@@ -39,7 +39,6 @@ Route::group('/user', function () {
     Route::get('/item/party/:partyId', 'user/itemListByParty');
     Route::post('/item/:id', 'user/updateItemStatus');
     Route::get('/item', 'user/itemList');
-    Route::get('/invoice', 'user/invoice');
     Route::get('/logout', 'user/logout');
     Route::get('/profile', 'user/profile');
     Route::post('/profile', 'user/updateProfile');

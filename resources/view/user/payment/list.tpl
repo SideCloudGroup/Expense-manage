@@ -13,7 +13,7 @@
                 </div>
             </div>
 
-            <div class="row row-cards">
+            <div class="row row-cards mt-2">
                 {if $parties}
                     {foreach $parties as $party}
                         <div class="col-md-6 col-lg-4">
@@ -33,7 +33,7 @@
                                             {/if}
                                             <div class="mt-2">
                                                 <span class="badge bg-danger text-danger-fg">
-                                                    待支付: {$currencySymbol}{$party.total_amount|default=0}
+                                                    待支付: {$party.currency_symbol|default='¥'}{$party.total_amount|default=0}
                                                 </span>
                                             </div>
                                         </div>

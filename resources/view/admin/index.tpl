@@ -62,7 +62,14 @@
                                 </div>
                                 <div class="progress progress-sm" style="height: 3px;">
                                     <div class="progress-bar bg-warning"
-                                         style="width: {($unpaidItems/$totalItems)*100}%"></div>
+                                         style="width: {$unpaidItemsPercentage}%"></div>
+                                </div>
+                                <div class="text-muted">
+                                    {if $totalItems > 0}
+                                        未支付比例: {$unpaidItemsPercentage}%
+                                    {else}
+                                        暂无项目
+                                    {/if}
                                 </div>
 
                             </div>

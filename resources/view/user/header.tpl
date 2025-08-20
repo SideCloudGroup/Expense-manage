@@ -1,5 +1,5 @@
 <!-- 侧边栏 -->
-<aside class="navbar navbar-vertical navbar-expand-lg" data-bs-theme="light">
+<aside class="navbar navbar-vertical navbar-expand-lg">
     <div class="container-fluid">
         <div class="navbar-brand navbar-brand-autodark w-100 d-flex">
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#sidebar-menu"
@@ -45,15 +45,6 @@
                             <i class="fa-solid fa-receipt"></i>
                         </span>
                         <span class="nav-link-title">需支付的款项</span>
-                    </a>
-                </li>
-
-                <li class="nav-item">
-                    <a class="nav-link" href="/user/invoice">
-                        <span class="nav-link-icon d-md-none d-lg-inline-block">
-                            <i class="fa-solid fa-calculator"></i>
-                        </span>
-                        <span class="nav-link-title">查看总未支付</span>
                     </a>
                 </li>
 
@@ -120,6 +111,12 @@
         function setTheme(theme) {
             document.documentElement.setAttribute('data-bs-theme', theme);
             localStorage.setItem('theme', theme);
+
+            // 更新侧边栏主题
+            const sidebar = document.querySelector('.navbar-vertical');
+            if (sidebar) {
+                sidebar.setAttribute('data-bs-theme', theme);
+            }
 
             // 更新图标
             if (theme === 'dark') {

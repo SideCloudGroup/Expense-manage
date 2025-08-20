@@ -58,7 +58,7 @@
                                             <tr>
                                                 <td>{$item.description}</td>
                                                 <td>{$item.username}</td>
-                                                <td class="text-success">{$currencySymbol}{$item.amount}</td>
+                                                <td class="text-success">{$party.currency_symbol|default='¥'}{$item.amount}</td>
                                                 <td>
                                                     {if $item.paid}
                                                         <span class="badge bg-success text-success-fg">已支付</span>
@@ -90,19 +90,19 @@
                                         <div class="col">
                                             <div class="text-muted">总计金额</div>
                                             <div class="h4 mb-0 text-success">
-                                                {$currencySymbol}{$totalAmount|default=0}
+                                                {$party.currency_symbol|default='¥'}{$totalAmount|default=0}
                                             </div>
                                         </div>
                                         <div class="col">
                                             <div class="text-muted">已支付</div>
                                             <div class="h4 mb-0 text-success">
-                                                {$currencySymbol}{$paidAmount|default=0}
+                                                {$party.currency_symbol|default='¥'}{$paidAmount|default=0}
                                             </div>
                                         </div>
                                         <div class="col">
                                             <div class="text-muted">未支付</div>
                                             <div class="h4 mb-0 text-warning">
-                                                {$currencySymbol}{$unpaidAmount|default=0}
+                                                {$party.currency_symbol|default='¥'}{$unpaidAmount|default=0}
                                             </div>
                                         </div>
                                     </div>

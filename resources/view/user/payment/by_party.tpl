@@ -56,7 +56,7 @@
                                         {foreach $items as $item}
                                             <tr>
                                                 <td>{$item.description}</td>
-                                                <td class="text-danger">{$currencySymbol}{$item.amount}</td>
+                                                <td class="text-danger">{$party.currency_symbol|default='¥'}{$item.amount}</td>
                                                 <td>{$item.username}</td>
                                                 <td>{$item.created_at}</td>
                                                 <td>
@@ -72,7 +72,7 @@
                                         <div class="col">
                                             <div class="text-muted">总计未支付金额</div>
                                             <div class="h4 mb-0 text-danger">
-                                                {$currencySymbol}{$totalAmount|default=0}
+                                                {$party.currency_symbol|default='¥'}{$totalAmount|default=0}
                                             </div>
                                         </div>
                                         <div class="col-auto">

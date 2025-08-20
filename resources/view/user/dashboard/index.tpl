@@ -4,10 +4,11 @@
 <div class="page">
     <div class="page-wrapper">
         <div class="container-xl">
+            <!-- 欢迎信息 -->
             <div class="page-header d-print-none">
                 <div class="row align-items-center justify-content-center">
                     <div class="col-auto">
-                        <a href="https://www.bilibili.com/video/BV1ea4y1W7x1" target="_blank" title="关注永雏塔菲喵">
+                        <a href="https://www.bilibili.com/video/BV1ea4y1W7x1" target="_blank">
                             <img src="/static/imgs/taffynya_agadgqyaaofp2fq.png"
                                  style="width: 80px; height: 80px; object-fit: contain; cursor: pointer; transition: transform 0.2s ease;">
                         </a>
@@ -19,14 +20,14 @@
                         </div>
                     </div>
                     <div class="col-auto">
-                        <a href="https://www.bilibili.com/video/BV1EF3uzeETo" target="_blank"
-                           title="关注永雏塔菲谢谢喵">
+                        <a href="https://www.bilibili.com/video/BV1EF3uzeETo" target="_blank">
                             <img src="/static/imgs/taffynya_agadvgmaauwawfq.png"
                                  style="width: 80px; height: 80px; object-fit: contain; cursor: pointer; transition: transform 0.2s ease;">
                         </a>
                     </div>
                 </div>
 
+                <!-- 快速操作按钮 -->
                 <div class="row mt-3">
                     <div class="col-12 d-flex justify-content-center">
                         <div class="btn-list d-flex justify-content-center">
@@ -49,6 +50,7 @@
                 </div>
             </div>
 
+            <!-- 统计卡片 -->
             <div class="row row-deck row-cards mt-3">
                 <div class="col-sm-6 col-lg-3">
                     <div class="card">
@@ -67,11 +69,11 @@
                     <div class="card">
                         <div class="card-body">
                             <div class="d-flex align-items-center">
-                                <div class="subheader">待支付金额</div>
+                                <div class="subheader">待支付项目</div>
                             </div>
-                            <div class="h1 mb-3 text-danger">{$currencySymbol}{$stats.total_unpaid_amount|default=0}</div>
+                            <div class="h1 mb-3 text-danger">{$stats.total_unpaid_items|default=0}</div>
                             <div class="d-flex mb-2">
-                                <div>需要支付的款项</div>
+                                <div>需要支付的项目数量</div>
                             </div>
                         </div>
                     </div>
@@ -80,11 +82,11 @@
                     <div class="card">
                         <div class="card-body">
                             <div class="d-flex align-items-center">
-                                <div class="subheader">应收金额</div>
+                                <div class="subheader">应收项目</div>
                             </div>
-                            <div class="h1 mb-3 text-success">{$currencySymbol}{$stats.total_receivable_amount|default=0}</div>
+                            <div class="h1 mb-3 text-success">{$stats.total_receivable_items|default=0}</div>
                             <div class="d-flex mb-2">
-                                <div>等待收款的款项</div>
+                                <div>等待收款的项目数量</div>
                             </div>
                         </div>
                     </div>
@@ -104,6 +106,7 @@
                 </div>
             </div>
 
+            <!-- 财务概览图表 -->
             <div class="row row-cards mt-3">
                 <div class="col-lg-8">
                     <div class="card">
@@ -114,20 +117,20 @@
                             <div class="row align-items-center">
                                 <div class="col-6">
                                     <div class="text-center">
-                                        <div class="h3 text-danger">{$currencySymbol}{$stats.total_unpaid_amount|default=0}</div>
-                                        <div class="text-muted">待支付</div>
+                                        <div class="h3 text-danger">{$stats.total_unpaid_items}</div>
+                                        <div class="text-muted">待支付项目</div>
                                     </div>
                                 </div>
                                 <div class="col-6">
                                     <div class="text-center">
-                                        <div class="h3 text-success">{$currencySymbol}{$stats.total_receivable_amount|default=0}</div>
-                                        <div class="text-muted">应收款</div>
+                                        <div class="h3 text-success">{$stats.total_receivable_items}</div>
+                                        <div class="text-muted">应收项目</div>
                                     </div>
                                 </div>
                             </div>
                             <div class="mt-3">
                                 <div class="progress" style="height: 8px;">
-                                    {if $stats.total_amount > 0}
+                                    {if $stats.total_all_items > 0}
                                         <div class="progress-bar bg-danger"
                                              style="width: {$stats.unpaid_percentage}%"></div>
                                         <div class="progress-bar bg-success"
@@ -139,7 +142,7 @@
                                         <small class="text-muted">待支付比例</small>
                                     </div>
                                     <div class="col-6 text-end">
-                                        <small class="text-muted">{$stats.unpaid_percentage|default=0}%</small>
+                                        <small class="text-muted">{$stats.unpaid_percentage}%</small>
                                     </div>
                                 </div>
                             </div>
@@ -153,12 +156,13 @@
                         </div>
                         <div class="card-body">
                             <div class="d-grid gap-2">
-                                <a href="/user/payment" class="btn btn-outline-danger">
+                                <a href="/user/payment" class="btn btn-outline-success">
                                     <svg class="icon me-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                              d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
+                                        <path stroke-linecap="round" stroke-linejoin-round
+                                        " stroke-width="2"
+                                        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
                                     </svg>
-                                    查看需支付款项
+                                    查看需支付的款项
                                 </a>
                                 <a href="/user/item" class="btn btn-outline-success">
                                     <svg class="icon me-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -166,13 +170,6 @@
                                               d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                                     </svg>
                                     查看我创建的收款
-                                </a>
-                                <a href="/user/invoice" class="btn btn-outline-primary">
-                                    <svg class="icon me-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                              d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-                                    </svg>
-                                    查看总未支付款项
                                 </a>
                                 {if app()->userService->getUser()->is_admin}
                                     <a href="/admin" class="btn btn-outline-warning">
@@ -191,6 +188,7 @@
                 </div>
             </div>
 
+            <!-- 最近加入的派对 -->
             {if $recentParties}
                 <div class="row row-cards mt-3">
                     <div class="col-12">
@@ -208,14 +206,14 @@
                                             <div class="card card-sm">
                                                 <div class="card-body">
                                                     <div class="d-flex align-items-center">
-                                                        <span class="avatar me-3 rounded bg-blue-lt">
-                                                            <svg class="icon" fill="none" stroke="currentColor"
-                                                                 viewBox="0 0 24 24">
-                                                                <path stroke-linecap="round" stroke-linejoin="round"
-                                                                      stroke-width="2"
-                                                                      d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
-                                                            </svg>
-                                                        </span>
+                                                <span class="avatar me-3 rounded bg-blue-lt">
+                                                    <svg class="icon" fill="none" stroke="currentColor"
+                                                         viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                                              stroke-width="2"
+                                                              d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+                                                    </svg>
+                                                </span>
                                                         <div class="flex-fill">
                                                             <div class="font-weight-medium">{$party.name}</div>
                                                             {if $party.description}

@@ -5,7 +5,6 @@ namespace app\controller;
 
 use app\BaseController;
 use app\model\Currency;
-use app\model\Party;
 use app\model\User;
 use Exception;
 use think\facade\Db;
@@ -26,6 +25,9 @@ class AdminController extends BaseController
         $totalItems = Db::table('item')->count();
         $paidItems = Db::table('item')->where('paid', 1)->count();
         $unpaidItems = Db::table('item')->where('paid', 0)->count();
+
+        // 计算项目未支付比例
+        $unpaidItemsPercentage = $totalItems > 0 ? round(($unpaidItems / $totalItems) * 100, 1) : 0;
 
         // 派对统计
         $totalParties = Db::table('party')->count();
@@ -58,6 +60,7 @@ class AdminController extends BaseController
             'totalItems' => $totalItems,
             'paidItems' => $paidItems,
             'unpaidItems' => $unpaidItems,
+            'unpaidItemsPercentage' => $unpaidItemsPercentage,
             'totalParties' => $totalParties,
             'activeParties' => $activeParties,
             'activeUsers' => $activeUsers,
@@ -149,7 +152,7 @@ class AdminController extends BaseController
      */
     public function party(Request $request): View
     {
-        // 获取所有派对及其统计信息
+        // 获取所有派对及其成员统计
         $parties = Db::table('party')
             ->field('party.*, COUNT(DISTINCT party_member.user_id) as member_count')
             ->leftJoin('party_member', 'party.id = party_member.party_id')
@@ -158,42 +161,72 @@ class AdminController extends BaseController
             ->select()
             ->toArray();
 
-        // 为每个派对添加支付统计和货币信息
-        foreach ($parties as $key => $party) {
-            // 统计该派对的支付情况
+        // 一次性获取所有派对的统计数据
+        $partyIds = array_column($parties, 'id');
+        $allPartyStats = [];
+
+        if (! empty($partyIds)) {
             $partyStats = Db::table('item')
-                ->where('party_id', $party['id'])
-                ->field('COUNT(*) as total_items, SUM(amount) as total_amount, COUNT(CASE WHEN paid = 1 THEN 1 END) as paid_items, SUM(CASE WHEN paid = 1 THEN amount ELSE 0 END) as paid_amount')
-                ->find();
+                ->whereIn('party_id', $partyIds)
+                ->field('party_id, COUNT(*) as total_items, SUM(amount) as total_amount, COUNT(CASE WHEN paid = 1 THEN 1 END) as paid_items, SUM(CASE WHEN paid = 1 THEN amount ELSE 0 END) as paid_amount')
+                ->group('party_id')
+                ->select()
+                ->toArray();
 
-            $parties[$key]['total_items'] = $partyStats['total_items'] ? : 0;
-            $parties[$key]['total_amount'] = $partyStats['total_amount'] ? : 0;
-            $parties[$key]['paid_items'] = $partyStats['paid_items'] ? : 0;
-            $parties[$key]['paid_amount'] = $partyStats['paid_amount'] ? : 0;
-            $parties[$key]['unpaid_items'] = $partyStats['total_items'] - $partyStats['paid_items'];
-            $parties[$key]['unpaid_amount'] = $partyStats['total_amount'] - $partyStats['paid_amount'];
-
-            // 计算支付完成率
-            $parties[$key]['payment_completion_rate'] = $partyStats['total_items'] > 0 ?
-                round(($partyStats['paid_items'] / $partyStats['total_items']) * 100, 1) : 0;
-
-            // 获取派对货币信息
-            $partyCurrency = Party::find($party['id']);
-            $currencySymbol = '¥';
-            if ($partyCurrency && $partyCurrency->base_currency) {
-                $currency = Currency::getByCode($partyCurrency->base_currency);
-                $currencySymbol = $currency ? $currency->symbol : '¥';
+            // 转换为以party_id为键的数组
+            foreach ($partyStats as $stat) {
+                $allPartyStats[$stat['party_id']] = $stat;
             }
-            $parties[$key]['currency_symbol'] = $currencySymbol;
         }
 
-        // 获取默认货币信息
-        $defaultCurrency = Currency::getDefaultCurrency();
-        $currencySymbol = $defaultCurrency ? $defaultCurrency->symbol : '¥';
+        // 一次性获取所有货币信息
+        $allCurrencies = [];
+        $currencyCodes = array_unique(array_filter(array_column($parties, 'base_currency')));
+        if (! empty($currencyCodes)) {
+            $currencies = Db::table('currencies')
+                ->whereIn('code', $currencyCodes)
+                ->field('code, symbol')
+                ->select()
+                ->toArray();
+
+            foreach ($currencies as $currency) {
+                $allCurrencies[$currency['code']] = $currency['symbol'];
+            }
+        }
+
+        // 为每个派对添加统计信息
+        foreach ($parties as $key => $party) {
+            $partyId = $party['id'];
+            $partyStat = $allPartyStats[$partyId] ?? null;
+
+            if ($partyStat) {
+                $parties[$key]['total_items'] = $partyStat['total_items'] ? : 0;
+                $parties[$key]['total_amount'] = $partyStat['total_amount'] ? : 0;
+                $parties[$key]['paid_items'] = $partyStat['paid_items'] ? : 0;
+                $parties[$key]['paid_amount'] = $partyStat['paid_amount'] ? : 0;
+                $parties[$key]['unpaid_items'] = $partyStat['total_items'] - $partyStat['paid_items'];
+                $parties[$key]['unpaid_amount'] = $partyStat['total_amount'] - $partyStat['paid_amount'];
+
+                // 计算支付完成率
+                $parties[$key]['payment_completion_rate'] = $partyStat['total_items'] > 0 ?
+                    round(($partyStat['paid_items'] / $partyStat['total_items']) * 100, 1) : 0;
+            } else {
+                $parties[$key]['total_items'] = 0;
+                $parties[$key]['total_amount'] = 0;
+                $parties[$key]['paid_items'] = 0;
+                $parties[$key]['paid_amount'] = 0;
+                $parties[$key]['unpaid_items'] = 0;
+                $parties[$key]['unpaid_amount'] = 0;
+                $parties[$key]['payment_completion_rate'] = 0;
+            }
+
+            // 获取派对货币符号
+            $baseCurrency = $party['base_currency'] ?? '';
+            $parties[$key]['currency_symbol'] = $allCurrencies[$baseCurrency] ?? '¥';
+        }
 
         return view('/admin/party/list', [
-            'parties' => $parties,
-            'currencySymbol' => $currencySymbol
+            'parties' => $parties
         ]);
     }
 
@@ -222,29 +255,32 @@ class AdminController extends BaseController
             ->order('party_member.joined_at', 'asc')
             ->select();
 
-        // 获取派对统计信息
+        // 获取派对统计信息 - 使用一次查询获取所有统计
         $partyStats = Db::table('item')
             ->where('party_id', $partyId)
             ->field('COUNT(*) as total_items, SUM(amount) as total_amount, COUNT(CASE WHEN paid = 1 THEN 1 END) as paid_items, SUM(CASE WHEN paid = 1 THEN amount ELSE 0 END) as paid_amount')
             ->find();
 
+        $totalItems = $partyStats['total_items'] ?? 0;
+        $totalAmount = $partyStats['total_amount'] ?? 0;
+        $paidItems = $partyStats['paid_items'] ?? 0;
+        $paidAmount = $partyStats['paid_amount'] ?? 0;
+
         $stats = [
-            'total_items' => $partyStats['total_items'] ? : 0,
-            'total_amount' => $partyStats['total_amount'] ? : 0,
-            'paid_items' => $partyStats['paid_items'] ? : 0,
-            'paid_amount' => $partyStats['paid_amount'] ? : 0,
-            'unpaid_items' => ($partyStats['total_items'] ? : 0) - ($partyStats['paid_items'] ? : 0),
-            'unpaid_amount' => ($partyStats['total_amount'] ? : 0) - ($partyStats['paid_amount'] ? : 0),
-            'payment_completion_rate' => ($partyStats['total_items'] ? : 0) > 0 ?
-                round(($partyStats['paid_items'] ? : 0) / ($partyStats['total_items'] ? : 0) * 100, 1) : 0
+            'total_items' => $totalItems,
+            'total_amount' => $totalAmount,
+            'paid_items' => $paidItems,
+            'paid_amount' => $paidAmount,
+            'unpaid_items' => $totalItems - $paidItems,
+            'unpaid_amount' => $totalAmount - $paidAmount,
+            'payment_completion_rate' => $totalItems > 0 ? round(($paidItems / $totalItems) * 100, 1) : 0
         ];
 
         // 获取派对货币信息
-        $partyCurrency = Party::find($partyId);
         $currencySymbol = '¥';
-        if ($partyCurrency && $partyCurrency->base_currency) {
-            $currency = Currency::getByCode($partyCurrency->base_currency);
-            $currencySymbol = $currency ? $currency->symbol : '¥';
+        if ($party['base_currency']) {
+            $currency = Db::table('currencies')->where('code', $party['base_currency'])->field('symbol')->find();
+            $currencySymbol = $currency ? $currency['symbol'] : '¥';
         }
 
         return view('/admin/party/members', [

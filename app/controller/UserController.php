@@ -24,57 +24,6 @@ use voku\helper\AntiXSS;
 
 class UserController extends BaseController
 {
-    public function invoice(Request $request): View
-    {
-        $userId = Session::get('userid');
-
-        // 获取用户加入的所有派对及其未支付款项
-        $partiesWithItems = Db::table('party')
-            ->join('party_member', 'party.id = party_member.party_id')
-            ->leftJoin('item', 'party.id = item.party_id')
-            ->leftJoin('user payer', 'item.userid = payer.id')
-            ->leftJoin('user initiator', 'item.initiator = initiator.id')
-            ->where('party_member.user_id', $userId)
-            ->where('item.paid', 0)
-            ->where('item.userid', $userId) // 只显示当前用户需要支付的
-            ->field('party.id as party_id, party.name as party_name, party.description as party_description, 
-                    item.id as item_id, item.description as item_description, item.amount, 
-                    initiator.username as initiator_name, item.created_at')
-            ->order('party.id, item.created_at DESC')
-            ->select();
-
-        // 按派对分组
-        $groupedItems = [];
-        foreach ($partiesWithItems as $item) {
-            $partyId = $item['party_id'];
-            if (! isset($groupedItems[$partyId])) {
-                $groupedItems[$partyId] = [
-                    'party_name' => $item['party_name'],
-                    'party_description' => $item['party_description'],
-                    'items' => [],
-                    'total_amount' => 0
-                ];
-            }
-            $groupedItems[$partyId]['items'][] = [
-                'description' => $item['item_description'],
-                'amount' => $item['amount'],
-                'username' => $item['initiator_name'],
-                'created_at' => $item['created_at']
-            ];
-            $groupedItems[$partyId]['total_amount'] += $item['amount'];
-        }
-
-        // 获取默认货币信息
-        $defaultCurrency = Currency::getDefaultCurrency();
-        $currencySymbol = $defaultCurrency ? $defaultCurrency->symbol : '¥';
-
-        return view('/user/dashboard/invoice', [
-            'groupedItems' => $groupedItems,
-            'currencySymbol' => $currencySymbol
-        ]);
-    }
-
-
     public function processAddItem(Request $request): Json
     {
         $users = json_decode($request->param('users'));
@@ -193,41 +142,52 @@ class UserController extends BaseController
             'total_unpaid_amount' => 0,
             'total_receivable_amount' => 0,
             'total_items_created' => 0,
-            'total_items_to_pay' => 0
+            'total_items_to_pay' => 0,
+            'total_unpaid_items' => 0,
+            'total_receivable_items' => 0
         ];
 
         // 计算各项统计
-        foreach ($parties as $party) {
-            // 未支付金额（需要支付的）
-            $unpaidAmount = Db::table('item')
-                ->where('party_id', $party['id'])
-                ->where('userid', $userId)
-                ->where('paid', 0)
-                ->sum('amount');
-            $stats['total_unpaid_amount'] += $unpaidAmount ? : 0;
+        // 优化：一次性查询所有相关数据，然后在PHP中计算
+        $allItems = Db::table('item')
+            ->join('party_member', 'item.party_id = party_member.party_id')
+            ->where('party_member.user_id', $userId)
+            ->field('item.userid, item.initiator, item.amount, item.paid')
+            ->select()
+            ->toArray();
 
-            // 应收金额（创建的收款）
-            $receivableAmount = Db::table('item')
-                ->where('party_id', $party['id'])
-                ->where('initiator', $userId)
-                ->where('paid', 0)
-                ->sum('amount');
-            $stats['total_receivable_amount'] += $receivableAmount ? : 0;
+        // 在PHP中计算统计数据
+        // 使用数组分组方式，减少循环中的条件判断
+        $userItems = [];
+        $initiatorItems = [];
 
-            // 创建的项目数量
-            $itemsCreated = Db::table('item')
-                ->where('party_id', $party['id'])
-                ->where('initiator', $userId)
-                ->count();
-            $stats['total_items_created'] += $itemsCreated;
+        foreach ($allItems as $item) {
+            // 按用户ID分组（需要支付的项目）
+            if ($item['userid'] == $userId) {
+                $userItems[] = $item;
+            }
 
-            // 需要支付的项目数量
-            $itemsToPay = Db::table('item')
-                ->where('party_id', $party['id'])
-                ->where('userid', $userId)
-                ->where('paid', 0)
-                ->count();
-            $stats['total_items_to_pay'] += $itemsToPay;
+            // 按发起人ID分组（创建的收款项目）
+            if ($item['initiator'] == $userId) {
+                $initiatorItems[] = $item;
+            }
+        }
+
+        // 计算统计数据
+        foreach ($userItems as $item) {
+            $stats['total_items_to_pay']++;
+            if ($item['paid'] == 0) {
+                $stats['total_unpaid_amount'] += $item['amount'];
+                $stats['total_unpaid_items']++;
+            }
+        }
+
+        foreach ($initiatorItems as $item) {
+            $stats['total_items_created']++;
+            if ($item['paid'] == 0) {
+                $stats['total_receivable_amount'] += $item['amount'];
+                $stats['total_receivable_items']++;
+            }
         }
 
         // 获取默认货币信息（用于显示）
@@ -239,10 +199,13 @@ class UserController extends BaseController
         $stats['total_amount'] = $stats['total_unpaid_amount'] + $stats['total_receivable_amount'];
         $stats['total_items'] = $stats['total_items_created'] + $stats['total_items_to_pay'];
 
-        // 计算百分比
-        if ($stats['total_amount'] > 0) {
-            $stats['unpaid_percentage'] = round(($stats['total_unpaid_amount'] / $stats['total_amount']) * 100, 1);
-            $stats['receivable_percentage'] = round(($stats['total_receivable_amount'] / $stats['total_amount']) * 100, 1);
+        // 计算实际的项目总数（所有相关项目）
+        $stats['total_all_items'] = $stats['total_unpaid_items'] + $stats['total_receivable_items'];
+
+        // 计算百分比（基于实际项目数量）
+        if ($stats['total_all_items'] > 0) {
+            $stats['unpaid_percentage'] = round(($stats['total_unpaid_items'] / $stats['total_all_items']) * 100, 1);
+            $stats['receivable_percentage'] = round(($stats['total_receivable_items'] / $stats['total_all_items']) * 100, 1);
         } else {
             $stats['unpaid_percentage'] = 0;
             $stats['receivable_percentage'] = 0;
@@ -269,7 +232,7 @@ class UserController extends BaseController
         $parties = Db::table('party')
             ->join('party_member', 'party.id = party_member.party_id')
             ->where('party_member.user_id', $userId)
-            ->field('party.id, party.name, party.description')
+            ->field('party.id, party.name, party.description, party.base_currency')
             ->select()
             ->toArray();
 
@@ -282,17 +245,13 @@ class UserController extends BaseController
                 ->sum('amount');
             $parties[$key]['total_amount'] = $totalAmount ? : 0;
 
-            // 调试每个派对的查询
-            trace("Party {$party['id']} ({$party['name']}): totalAmount = {$totalAmount}", 'debug');
+            // 获取派对货币信息
+            $currency = Currency::getByCode($party['base_currency']);
+            $parties[$key]['currency_symbol'] = $currency ? $currency->symbol : '¥';
         }
 
-        // 获取默认货币信息
-        $defaultCurrency = Currency::getDefaultCurrency();
-        $currencySymbol = $defaultCurrency ? $defaultCurrency->symbol : '¥';
-
         return view('/user/payment/list', [
-            'parties' => $parties,
-            'currencySymbol' => $currencySymbol
+            'parties' => $parties
         ]);
     }
 
@@ -336,11 +295,13 @@ class UserController extends BaseController
             $currencySymbol = $currency ? $currency->symbol : '¥';
         }
 
+        // 将货币符号添加到party对象中
+        $party['currency_symbol'] = $currencySymbol;
+
         return view('/user/payment/by_party', [
             'party' => $party,
             'items' => $items,
-            'totalAmount' => $totalAmount,
-            'currencySymbol' => $currencySymbol
+            'totalAmount' => $totalAmount
         ]);
     }
 
@@ -352,7 +313,7 @@ class UserController extends BaseController
         $parties = Db::table('party')
             ->join('party_member', 'party.id = party_member.party_id')
             ->where('party_member.user_id', $userId)
-            ->field('party.id, party.name, party.description')
+            ->field('party.id, party.name, party.description, party.base_currency')
             ->select()
             ->toArray();
 
@@ -365,17 +326,13 @@ class UserController extends BaseController
                 ->sum('amount');
             $parties[$key]['total_amount'] = $totalAmount ? : 0;
 
-            // 调试每个派对的查询
-            trace("Party {$party['id']} ({$party['name']}): totalAmount = {$totalAmount}", 'debug');
+            // 获取派对货币信息
+            $currency = Currency::getByCode($party['base_currency']);
+            $parties[$key]['currency_symbol'] = $currency ? $currency->symbol : '¥';
         }
 
-        // 获取默认货币信息
-        $defaultCurrency = Currency::getDefaultCurrency();
-        $currencySymbol = $defaultCurrency ? $defaultCurrency->symbol : '¥';
-
         return view('/user/item/list', [
-            'parties' => $parties,
-            'currencySymbol' => $currencySymbol
+            'parties' => $parties
         ]);
     }
 
@@ -426,13 +383,15 @@ class UserController extends BaseController
             $currencySymbol = $currency ? $currency->symbol : '¥';
         }
 
+        // 将货币符号添加到party对象中
+        $party['currency_symbol'] = $currencySymbol;
+
         return view('/user/item/by_party', [
             'party' => $party,
             'items' => $items,
             'totalAmount' => $totalAmount,
             'paidAmount' => $paidAmount,
-            'unpaidAmount' => $unpaidAmount,
-            'currencySymbol' => $currencySymbol
+            'unpaidAmount' => $unpaidAmount
         ]);
     }
 
