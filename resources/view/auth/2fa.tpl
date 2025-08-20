@@ -101,7 +101,7 @@
     let failDialog = new tabler.bootstrap.Modal(document.getElementById('fail-dialog'));
 
     const {startAuthentication} =
-        SimpleWebAuthnBrowser;
+    SimpleWebAuthnBrowser;
     document.getElementById('webauthnLogin').addEventListener('click', async () => {
         const resp = await fetch('/auth/fido_request');
         const options = await resp.json();

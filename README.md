@@ -1,9 +1,9 @@
 # 🎉 Expense-manage - 智能团体开支管理系统
 
 <div align="center" style="display: flex; align-items: center; justify-content: center;">
-  <img src="public/static/imgs/taffynya_agadgqyaaofp2fq.png" width="200" style="margin-right: 20px;">
-  <h2 style="margin: 0 20px;">🎊 派对费用管理专家 🎊</h2>
-  <img src="public/static/imgs/taffynya_agadvgmaauwawfq.png" width="200" style="margin-left: 20px;">
+  <img src="public/static/imgs/taffynya_agadgqyaaofp2fq.png" width="64" style="margin-right: 20px;">
+  <h2 style="margin: 0 20px;">派对费用管理专家</h2>
+  <img src="public/static/imgs/taffynya_agadvgmaauwawfq.png" width="64" style="margin-left: 20px;">
 </div>
 
 一个现代化的团体开支管理程序，基于 ThinkPHP8 框架构建，支持**派对创建与管理**、多人协作记账，并智能计算最优支付方案。

@@ -22,7 +22,7 @@
                                 <h3 class="card-title">{$partyData.party_name}</h3>
                                 <div class="card-actions">
                                     <span class="badge bg-danger text-danger-fg fs-6">
-                                        总计未支付: ¥{$partyData.total_amount|default=0}
+                                        总计未支付: {$currencySymbol}{$partyData.total_amount|default=0}
                                     </span>
                                 </div>
                             </div>
@@ -41,7 +41,7 @@
                                         {foreach $partyData.items as $item}
                                             <tr>
                                                 <td>{$item.description}</td>
-                                                <td class="text-danger">¥{$item.amount}</td>
+                                                <td class="text-danger">{$currencySymbol}{$item.amount}</td>
                                                 <td>{$item.username}</td>
                                                 <td>{$item.created_at}</td>
                                             </tr>

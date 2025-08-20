@@ -58,15 +58,6 @@
                 </li>
 
                 <li class="nav-item">
-                    <a class="nav-link" href="/user/currency">
-                        <span class="nav-link-icon d-md-none d-lg-inline-block">
-                            <i class="fa-solid fa-arrow-right-arrow-left"></i>
-                        </span>
-                        <span class="nav-link-title">查询当前汇率</span>
-                    </a>
-                </li>
-
-                <li class="nav-item">
                     <a class="nav-link" href="/user/party">
                         <span class="nav-link-icon d-md-none d-lg-inline-block">
                             <i class="fa-solid fa-users"></i>

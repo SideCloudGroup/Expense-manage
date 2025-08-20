@@ -65,6 +65,40 @@
                                     </div>
                                 </div>
 
+                                <div class="mb-3">
+                                    <label class="form-label required">基础货币</label>
+                                    <select class="form-select" name="base_currency" id="base_currency" required
+                                            onchange="updateSupportedCurrencies()">
+                                        {foreach $currencies as $code => $currency}
+                                            <option value="{$code}" {if $currency.is_default}selected{/if}>
+                                                {$currency.name} ({$code|strtoupper}) - {$currency.symbol}
+                                            </option>
+                                        {/foreach}
+                                    </select>
+                                    <div class="form-hint">选择派对的基础货币，所有金额将以此货币为基准进行计算</div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label">可选货币</label>
+                                    <div class="row">
+                                        {foreach $currencies as $code => $currency}
+                                            <div class="col-md-6">
+                                                <label class="form-check">
+                                                    <input class="form-check-input" type="checkbox"
+                                                           name="supported_currencies[]" value="{$code}"
+                                                           {if $currency.is_default}checked disabled{/if}>
+                                                    <span class="form-check-label">
+                                                        {$currency.name} ({$code|strtoupper})
+                                                    </span>
+                                                </label>
+                                            </div>
+                                        {/foreach}
+                                    </div>
+                                    <div class="form-hint">
+                                        选择派对支持的货币，成员可以使用这些货币添加项目（默认货币会自动包含且不可取消）
+                                    </div>
+                                </div>
+
                                 <div class="form-footer">
                                     <a href="/user/party" class="btn btn-secondary">取消</a>
                                     <button type="submit" class="btn btn-primary">创建派对</button>
@@ -123,9 +157,7 @@
 </div>
 
 <script>
-    // 时区搜索防抖定时器
     let searchTimeout = null;
-    // 时区验证防抖定时器
     let validateTimeout = null;
 
     // 时区搜索功能
@@ -138,13 +170,10 @@
             resultsDiv.style.display = 'none';
             return;
         }
-
-        // 清除之前的定时器
         if (searchTimeout) {
             clearTimeout(searchTimeout);
         }
 
-        // 设置500ms延迟，等待用户输入完成
         searchTimeout = setTimeout(() => {
             // 使用API搜索时区
             fetch(`/user/party/search-timezones?query=${encodeURIComponent(query)}`)
@@ -160,7 +189,7 @@
                     console.error('搜索时区失败:', error);
                     resultsDiv.style.display = 'none';
                 });
-        }, 500); // 500ms延迟
+        }, 500);
     }
 
     // 显示时区搜索结果
@@ -203,13 +232,10 @@
             hint.className = 'text-danger';
             return false;
         }
-
-        // 清除之前的验证定时器
         if (validateTimeout) {
             clearTimeout(validateTimeout);
         }
 
-        // 设置300ms延迟，等待用户输入完成
         validateTimeout = setTimeout(() => {
             // 使用API验证时区
             fetch('/user/party/validate-timezone', {
@@ -236,9 +262,9 @@
                     hint.textContent = '验证失败，请重试';
                     hint.className = 'text-warning';
                 });
-        }, 300); // 300ms延迟
+        }, 300);
 
-        return true; // 允许继续，因为验证是异步的
+        return true;
     }
 
     // 显示时区帮助信息
@@ -272,6 +298,21 @@
         });
     }
 
+    // 更新可选货币选择
+    function updateSupportedCurrencies() {
+        const baseCurrency = document.getElementById('base_currency').value;
+        const checkboxes = document.querySelectorAll('input[name="supported_currencies[]"]');
+
+        checkboxes.forEach(checkbox => {
+            if (checkbox.value === baseCurrency) {
+                checkbox.checked = true;
+                checkbox.disabled = true;
+            } else {
+                checkbox.disabled = false;
+            }
+        });
+    }
+
     // 表单提交前验证
     document.getElementById('createPartyForm').addEventListener('submit', function (e) {
         if (!validateTimezone()) {
@@ -284,12 +325,28 @@
             });
             return false;
         }
+
+        // 至少选择了一种可选货币
+        const selectedCurrencies = document.querySelectorAll('input[name="supported_currencies[]"]:checked');
+        if (selectedCurrencies.length === 0) {
+            e.preventDefault();
+            Swal.fire({
+                icon: 'warning',
+                title: '货币选择错误',
+                text: '请至少选择一种货币',
+                confirmButtonColor: '#206bc4'
+            });
+            return false;
+        }
     });
 
     // 页面加载完成后初始化
     document.addEventListener('DOMContentLoaded', function () {
         // 隐藏搜索结果
         document.getElementById('timezone-results').style.display = 'none';
+
+        // 初始化货币选择
+        updateSupportedCurrencies();
 
         // 点击其他地方时隐藏搜索结果
         document.addEventListener('click', function (e) {

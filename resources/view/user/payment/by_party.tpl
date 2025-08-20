@@ -56,7 +56,7 @@
                                         {foreach $items as $item}
                                             <tr>
                                                 <td>{$item.description}</td>
-                                                <td class="text-danger">¥{$item.amount}</td>
+                                                <td class="text-danger">{$currencySymbol}{$item.amount}</td>
                                                 <td>{$item.username}</td>
                                                 <td>{$item.created_at}</td>
                                                 <td>
@@ -72,7 +72,7 @@
                                         <div class="col">
                                             <div class="text-muted">总计未支付金额</div>
                                             <div class="h4 mb-0 text-danger">
-                                                ¥{$totalAmount|default=0}
+                                                {$currencySymbol}{$totalAmount|default=0}
                                             </div>
                                         </div>
                                         <div class="col-auto">
@@ -100,16 +100,5 @@
         </div>
     </div>
 </div>
-
-<script>
-    // 页面加载完成后的提示
-    document.addEventListener('DOMContentLoaded', function () {
-        // 如果有未支付款项，显示提示信息
-        const itemsCount = document.querySelectorAll('tbody tr').length;
-        if (itemsCount > 0) {
-            console.log(`您有 ${itemsCount} 笔款项需要支付，付款后请联系发起人确认`);
-        }
-    });
-</script>
 
 {include file="/footer"}

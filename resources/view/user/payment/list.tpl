@@ -33,7 +33,7 @@
                                             {/if}
                                             <div class="mt-2">
                                                 <span class="badge bg-danger text-danger-fg">
-                                                    待支付: ¥{$party.total_amount|default=0}
+                                                    待支付: {$currencySymbol}{$party.total_amount|default=0}
                                                 </span>
                                             </div>
                                         </div>

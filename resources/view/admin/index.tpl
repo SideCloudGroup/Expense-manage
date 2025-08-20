@@ -18,33 +18,7 @@
 
                 <!-- 统计卡片 -->
                 <div class="row row-deck row-cards">
-                    <!-- 财务统计 -->
-                    <div class="col-sm-6 col-lg-3">
-                        <div class="card">
-                            <div class="card-body">
-                                <div class="d-flex align-items-center">
-                                    <div class="subheader">总费用</div>
-                                </div>
-                                <div class="h1 mb-3">{:getUnitSign()} {$totalPrice}</div>
-                                <div class="d-flex mb-2">
-                                    <div>已支付: {:getUnitSign()} {$totalPricePaid}</div>
-                                    <div class="ms-auto">
-                                        <span class="text-green d-inline-flex align-items-center lh-1">
-                                            {$paymentCompletionRate}%
-                                            <svg class="icon ms-1" fill="none" stroke="currentColor"
-                                                 viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                      d="M5 13l4 4L19 7"/>
-                                            </svg>
-                                        </span>
-                                    </div>
-                                </div>
-                                <div class="progress progress-sm" style="height: 3px;">
-                                    <div class="progress-bar" style="width: {$paymentCompletionRate}%"></div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+
 
                     <!-- 用户统计 -->
                     <div class="col-sm-6 col-lg-3">
@@ -90,7 +64,7 @@
                                     <div class="progress-bar bg-warning"
                                          style="width: {($unpaidItems/$totalItems)*100}%"></div>
                                 </div>
-                                <div class="text-muted">平均金额: {:getUnitSign()} {$avgItemAmount}</div>
+
                             </div>
                         </div>
                     </div>

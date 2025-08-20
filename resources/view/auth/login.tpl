@@ -52,7 +52,7 @@
 
 <script>
     const {startAuthentication} =
-        SimpleWebAuthnBrowser;
+    SimpleWebAuthnBrowser;
     document.getElementById('webauthnLogin').addEventListener('click', async () => {
         const resp = await fetch('/auth/webauthn_request');
         const options = await resp.json();

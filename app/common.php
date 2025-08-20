@@ -1,10 +1,8 @@
 <?php
 // 应用公共文件
 
-function getUnitSign(): string
-{
-    return env('CURRENCY_SIGN', '￥');
-}
+use app\model\Currency;
+use app\model\Party;
 
 function getSetting(string $key, $default = null)
 {

@@ -66,9 +66,9 @@
                                                         <div class="col">
                                                             <div class="card-title">{$username1}</div>
                                                             <div class="card-subtitle">
-                                                                合计支出：{:getUnitSign()} {$userStat[$username1]['out']}
+                                                                合计支出：{$currencySymbol} {$userStat[$username1]['out']}
                                                                 |
-                                                                未结收入：{:getUnitSign()} {$userStat[$username1]['in']}
+                                                                未结收入：{$currencySymbol} {$userStat[$username1]['in']}
                                                             </div>
                                                         </div>
                                                     </div>
@@ -83,7 +83,7 @@
                                                                         <span class="text-muted">向</span>
                                                                         <strong class="mx-1">{$username2}</strong>
                                                                         <span class="text-muted">支付</span>
-                                                                        <span class="badge bg-success ms-2 text-success-fg">{:getUnitSign()} {$amount}</span>
+                                                                        <span class="badge bg-success ms-2 text-success-fg">{$currencySymbol} {$amount}</span>
                                                                     </div>
                                                                 </li>
                                                             {/foreach}
@@ -141,7 +141,7 @@
                                                                         <span class="text-muted">向</span>
                                                                         <strong class="mx-1">{$username2}</strong>
                                                                         <span class="text-muted">支付</span>
-                                                                        <span class="badge bg-secondary ms-2 text-secondary-fg">{:getUnitSign()} {$amount}</span>
+                                                                        <span class="badge bg-secondary ms-2 text-secondary-fg">{$currencySymbol} {$amount}</span>
                                                                     </div>
                                                                 </li>
                                                             {/foreach}

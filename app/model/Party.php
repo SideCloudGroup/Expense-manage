@@ -14,6 +14,8 @@ use think\Model;
  * @property string $invite_code
  * @property int $owner_id
  * @property string $timezone
+ * @property string $base_currency
+ * @property string $supported_currencies
  * @property string $created_at
  * @property string $updated_at
  */
@@ -28,7 +30,6 @@ class Party extends Model
     protected $updateTime = 'updated_at';
 
     // 关联用户（所有者）
-
     public static function generateInviteCode(): string
     {
         do {
@@ -40,42 +41,30 @@ class Party extends Model
     }
 
     // 关联成员
-
     public function owner()
     {
         return $this->belongsTo(User::class, 'owner_id');
     }
 
     // 关联账目
-
     public function items()
     {
         return $this->hasMany(Item::class, 'party_id');
     }
 
     // 生成邀请码
-
     public function isMember(int $userId): bool
     {
         return $this->members()->where('user_id', $userId)->count() > 0;
     }
 
     // 检查用户是否为成员
-
     public function members()
     {
         return $this->belongsToMany(User::class, 'party_member', 'user_id', 'party_id');
     }
 
-    // 检查用户是否为所有者
-
-    public function canManage(int $userId): bool
-    {
-        return $this->isOwner($userId);
-    }
-
     // 检查用户是否有权限管理
-
     public function isOwner(int $userId): bool
     {
         return $this->owner_id === $userId;

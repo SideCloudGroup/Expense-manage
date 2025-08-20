@@ -4,6 +4,7 @@ declare (strict_types=1);
 namespace app\controller;
 
 use app\BaseController;
+use app\model\Currency;
 use app\model\Item;
 use app\model\MFACredential;
 use app\model\Party;
@@ -63,7 +64,14 @@ class UserController extends BaseController
             $groupedItems[$partyId]['total_amount'] += $item['amount'];
         }
 
-        return view('/user/dashboard/invoice', ['groupedItems' => $groupedItems]);
+        // 获取默认货币信息
+        $defaultCurrency = Currency::getDefaultCurrency();
+        $currencySymbol = $defaultCurrency ? $defaultCurrency->symbol : '¥';
+
+        return view('/user/dashboard/invoice', [
+            'groupedItems' => $groupedItems,
+            'currencySymbol' => $currencySymbol
+        ]);
     }
 
 
@@ -109,11 +117,35 @@ class UserController extends BaseController
             }
         }
 
-        $baseCurrency = app()->currencyService->getDefaultCurrency();
-        $exchangeRate = app()->currencyService->getExchangeRate();
+        // 获取派对货币信息
+        $party = null;
+        if ($partyId) {
+            $party = Db::table('party')->where('id', $partyId)->find();
+        }
+
+        if ($party) {
+            // 使用派对特定的货币
+            $baseCurrency = $party['base_currency'];
+            $supportedCurrencies = json_decode($party['supported_currencies'], true) ? : [$baseCurrency];
+
+            // 验证货币是否被派对支持
+            if (! in_array($request->param('unit'), $supportedCurrencies)) {
+                return json(['ret' => 0, 'msg' => '该派对不支持此货币']);
+            }
+
+            $exchangeRate = app()->currencyService->getPartyExchangeRate($baseCurrency, $supportedCurrencies);
+        } else {
+            // 使用系统默认货币
+            $baseCurrency = app()->currencyService->getDefaultCurrency();
+            $exchangeRate = app()->currencyService->getExchangeRate();
+        }
+
         if ($request->param('unit') === $baseCurrency) {
             $amount = $request->param('amount');
         } else {
+            if (! isset($exchangeRate[$request->param('unit')])) {
+                return json(['ret' => 0, 'msg' => '无法获取该货币的汇率信息']);
+            }
             $amount = $request->param('amount') / $exchangeRate[$request->param('unit')];
         }
 
@@ -127,18 +159,15 @@ class UserController extends BaseController
     {
         $userId = Session::get('userid');
 
-        // 获取用户加入的所有Party
+        // 获取用户加入的所有Party（只返回基本信息）
         $parties = Db::table('party')
             ->join('party_member', 'party.id = party_member.party_id')
             ->where('party_member.user_id', $userId)
             ->field('party.id, party.name, party.description')
             ->select();
 
-        $currencies = $this->app->currencyService->getExchangeRate();
-
         return view('/user/item/add', [
-            'parties' => $parties,
-            'currencies' => $currencies
+            'parties' => $parties
         ]);
     }
 
@@ -201,6 +230,11 @@ class UserController extends BaseController
             $stats['total_items_to_pay'] += $itemsToPay;
         }
 
+        // 获取默认货币信息（用于显示）
+        $defaultCurrency = Currency::getDefaultCurrency();
+        $currencySymbol = $defaultCurrency ? $defaultCurrency->symbol : '¥';
+        $currencyCode = $defaultCurrency ? strtoupper($defaultCurrency->code) : 'CNY';
+
         // 计算衍生统计数据
         $stats['total_amount'] = $stats['total_unpaid_amount'] + $stats['total_receivable_amount'];
         $stats['total_items'] = $stats['total_items_created'] + $stats['total_items_to_pay'];
@@ -221,7 +255,9 @@ class UserController extends BaseController
             'user' => $user,
             'parties' => $parties,
             'stats' => $stats,
-            'recentParties' => $recentParties
+            'recentParties' => $recentParties,
+            'currencySymbol' => $currencySymbol,
+            'currencyCode' => $currencyCode
         ]);
     }
 
@@ -250,7 +286,14 @@ class UserController extends BaseController
             trace("Party {$party['id']} ({$party['name']}): totalAmount = {$totalAmount}", 'debug');
         }
 
-        return view('/user/payment/list', ['parties' => $parties]);
+        // 获取默认货币信息
+        $defaultCurrency = Currency::getDefaultCurrency();
+        $currencySymbol = $defaultCurrency ? $defaultCurrency->symbol : '¥';
+
+        return view('/user/payment/list', [
+            'parties' => $parties,
+            'currencySymbol' => $currencySymbol
+        ]);
     }
 
     public function paymentByParty(Request $request, int $partyId): View
@@ -285,10 +328,19 @@ class UserController extends BaseController
             $totalAmount += $item['amount'];
         }
 
+        // 获取派对货币信息
+        $partyCurrency = Party::find($partyId);
+        $currencySymbol = '¥';
+        if ($partyCurrency && $partyCurrency->base_currency) {
+            $currency = Currency::getByCode($partyCurrency->base_currency);
+            $currencySymbol = $currency ? $currency->symbol : '¥';
+        }
+
         return view('/user/payment/by_party', [
             'party' => $party,
             'items' => $items,
-            'totalAmount' => $totalAmount
+            'totalAmount' => $totalAmount,
+            'currencySymbol' => $currencySymbol
         ]);
     }
 
@@ -317,7 +369,14 @@ class UserController extends BaseController
             trace("Party {$party['id']} ({$party['name']}): totalAmount = {$totalAmount}", 'debug');
         }
 
-        return view('/user/item/list', ['parties' => $parties]);
+        // 获取默认货币信息
+        $defaultCurrency = Currency::getDefaultCurrency();
+        $currencySymbol = $defaultCurrency ? $defaultCurrency->symbol : '¥';
+
+        return view('/user/item/list', [
+            'parties' => $parties,
+            'currencySymbol' => $currencySymbol
+        ]);
     }
 
     public function itemListByParty(Request $request, int $partyId): View
@@ -359,12 +418,21 @@ class UserController extends BaseController
             }
         }
 
+        // 获取派对货币信息
+        $partyCurrency = Party::find($partyId);
+        $currencySymbol = '¥';
+        if ($partyCurrency && $partyCurrency->base_currency) {
+            $currency = Currency::getByCode($partyCurrency->base_currency);
+            $currencySymbol = $currency ? $currency->symbol : '¥';
+        }
+
         return view('/user/item/by_party', [
             'party' => $party,
             'items' => $items,
             'totalAmount' => $totalAmount,
             'paidAmount' => $paidAmount,
-            'unpaidAmount' => $unpaidAmount
+            'unpaidAmount' => $unpaidAmount,
+            'currencySymbol' => $currencySymbol
         ]);
     }
 
@@ -388,16 +456,6 @@ class UserController extends BaseController
         $item->paid = $request->param('paid');
         $item->save();
         return json(['ret' => 1, 'msg' => '更新成功'])->header(['HX-Refresh' => 'true']);
-    }
-
-    public function currency(Request $request): View
-    {
-        $baseCurrency = app()->currencyService->getDefaultCurrency();
-        $exchangeRate = app()->currencyService->getExchangeRate();
-        foreach ($exchangeRate as $currency => $rate) {
-            $exchangeRate[$currency] = round(1 / $rate, 3);
-        }
-        return view('/user/account/currency', ['baseCurrency' => $baseCurrency, 'currencies' => $exchangeRate]);
     }
 
     public function logout(Request $request): Json
@@ -555,12 +613,21 @@ class UserController extends BaseController
         $bestPay = $this->app->userService->getPartyBestPay($partyId);
         $userStat = $this->app->userService->getPartyUserStat($partyId);
 
+        // 获取派对货币信息
+        $partyCurrency = Party::find($partyId);
+        $currencySymbol = '¥';
+        if ($partyCurrency && $partyCurrency->base_currency) {
+            $currency = Currency::getByCode($partyCurrency->base_currency);
+            $currencySymbol = $currency ? $currency->symbol : '¥';
+        }
+
         return view('/user/party/bestpay', [
             'party' => $party,
             'bestPayAll' => $bestPay[1],
             'bestPayFinal' => $bestPay[0],
             'userStat' => $userStat,
-            'isOwner' => $isOwner
+            'isOwner' => $isOwner,
+            'currencySymbol' => $currencySymbol
         ]);
     }
 

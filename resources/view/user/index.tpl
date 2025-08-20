@@ -71,7 +71,7 @@
                         <div class="d-flex align-items-center">
                             <div class="subheader">待支付金额</div>
                         </div>
-                        <div class="h1 mb-3 text-danger">¥{$stats.total_unpaid_amount|default=0}</div>
+                        <div class="h1 mb-3 text-danger">{$currencySymbol}{$stats.total_unpaid_amount|default=0}</div>
                         <div class="d-flex mb-2">
                             <div>需要支付的款项</div>
                         </div>
@@ -84,7 +84,7 @@
                         <div class="d-flex align-items-center">
                             <div class="subheader">应收金额</div>
                         </div>
-                        <div class="h1 mb-3 text-success">¥{$stats.total_receivable_amount|default=0}</div>
+                        <div class="h1 mb-3 text-success">{$currencySymbol}{$stats.total_unpaid_amount|default=0}</div>
                         <div class="d-flex mb-2">
                             <div>等待收款的款项</div>
                         </div>
@@ -117,13 +117,13 @@
                         <div class="row align-items-center">
                             <div class="col-6">
                                 <div class="text-center">
-                                    <div class="h3 text-danger">¥{$stats.total_unpaid_amount|default=0}</div>
+                                    <div class="h3 text-danger">{$currencySymbol}{$stats.total_unpaid_amount|default=0}</div>
                                     <div class="text-muted">待支付</div>
                                 </div>
                             </div>
                             <div class="col-6">
                                 <div class="text-center">
-                                    <div class="h3 text-success">¥{$stats.total_receivable_amount|default=0}</div>
+                                    <div class="h3 text-success">{$currencySymbol}{$stats.total_receivable_amount|default=0}</div>
                                     <div class="text-muted">应收款</div>
                                 </div>
                             </div>

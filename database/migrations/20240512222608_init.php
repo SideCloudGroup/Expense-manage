@@ -13,10 +13,10 @@ class Init extends Migrator
         $table = $this->table('item', ['engine' => 'InnoDB', 'collation' => 'utf8mb4_unicode_ci']);
         $table->addColumn('userid', 'integer', ['null' => false])
             ->addColumn('description', 'string', ['limit' => 255, 'null' => false])
-            ->addColumn('created_at', 'datetime',['null'=>false, 'default'=>'CURRENT_TIMESTAMP'])
-            ->addColumn('amount', 'double', ['null'=>false, 'default'=>0.00, 'precision'=>10, 'scale'=>2])
-            ->addColumn('paid', 'boolean', ['null'=>false, 'default'=>false])
-            ->addColumn('initiator', 'integer', ['null'=>false])
+            ->addColumn('created_at', 'datetime', ['null' => false, 'default' => 'CURRENT_TIMESTAMP'])
+            ->addColumn('amount', 'double', ['null' => false, 'default' => 0.00, 'precision' => 10, 'scale' => 2])
+            ->addColumn('paid', 'boolean', ['null' => false, 'default' => false])
+            ->addColumn('initiator', 'integer', ['null' => false])
             ->create();
     }
 }

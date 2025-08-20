@@ -4,6 +4,8 @@ declare (strict_types=1);
 namespace app\controller;
 
 use app\BaseController;
+use app\model\Currency;
+use app\model\Party;
 use app\model\User;
 use Exception;
 use think\facade\Db;
@@ -15,11 +17,6 @@ class AdminController extends BaseController
 {
     public function index(Request $request): View
     {
-        // 基础统计数据
-        $totalPricePaid = Db::table('item')->where('paid', 1)->sum('amount');
-        $totalPriceUnpaid = Db::table('item')->where('paid', 0)->sum('amount');
-        $totalPrice = $totalPricePaid + $totalPriceUnpaid;
-
         // 用户统计
         $totalUsers = (new User())->count();
         $adminUsers = (new User())->where('is_admin', 1)->count();
@@ -38,16 +35,12 @@ class AdminController extends BaseController
             ->having('COUNT(party_member.user_id) > 1')
             ->count();
 
-
         // 用户活跃度统计（最近30天有活动的用户）
         $thirtyDaysAgo = date('Y-m-d H:i:s', strtotime('-30 days'));
         $activeUsers = Db::table('item')
             ->where('created_at', '>=', $thirtyDaysAgo)
             ->group('userid')
             ->count();
-
-        // 平均项目金额
-        $avgItemAmount = $totalItems > 0 ? round($totalPrice / $totalItems, 2) : 0;
 
         // 支付完成率
         $paymentCompletionRate = $totalItems > 0 ? round(($paidItems / $totalItems) * 100, 1) : 0;
@@ -59,9 +52,6 @@ class AdminController extends BaseController
         $partyActivityRate = $totalParties > 0 ? round(($activeParties / $totalParties) * 100, 1) : 0;
 
         return view('/admin/index', [
-            'totalPrice' => $totalPrice,
-            'totalPricePaid' => $totalPricePaid,
-            'totalPriceUnpaid' => $totalPriceUnpaid,
             'totalUsers' => $totalUsers,
             'adminUsers' => $adminUsers,
             'regularUsers' => $regularUsers,
@@ -71,7 +61,6 @@ class AdminController extends BaseController
             'totalParties' => $totalParties,
             'activeParties' => $activeParties,
             'activeUsers' => $activeUsers,
-            'avgItemAmount' => $avgItemAmount,
             'paymentCompletionRate' => $paymentCompletionRate,
             'userActivityRate' => $userActivityRate,
             'partyActivityRate' => $partyActivityRate
@@ -169,7 +158,7 @@ class AdminController extends BaseController
             ->select()
             ->toArray();
 
-        // 为每个派对添加支付统计
+        // 为每个派对添加支付统计和货币信息
         foreach ($parties as $key => $party) {
             // 统计该派对的支付情况
             $partyStats = Db::table('item')
@@ -187,9 +176,25 @@ class AdminController extends BaseController
             // 计算支付完成率
             $parties[$key]['payment_completion_rate'] = $partyStats['total_items'] > 0 ?
                 round(($partyStats['paid_items'] / $partyStats['total_items']) * 100, 1) : 0;
+
+            // 获取派对货币信息
+            $partyCurrency = Party::find($party['id']);
+            $currencySymbol = '¥';
+            if ($partyCurrency && $partyCurrency->base_currency) {
+                $currency = Currency::getByCode($partyCurrency->base_currency);
+                $currencySymbol = $currency ? $currency->symbol : '¥';
+            }
+            $parties[$key]['currency_symbol'] = $currencySymbol;
         }
 
-        return view('/admin/party/list', ['parties' => $parties]);
+        // 获取默认货币信息
+        $defaultCurrency = Currency::getDefaultCurrency();
+        $currencySymbol = $defaultCurrency ? $defaultCurrency->symbol : '¥';
+
+        return view('/admin/party/list', [
+            'parties' => $parties,
+            'currencySymbol' => $currencySymbol
+        ]);
     }
 
     /**
@@ -234,10 +239,19 @@ class AdminController extends BaseController
                 round(($partyStats['paid_items'] ? : 0) / ($partyStats['total_items'] ? : 0) * 100, 1) : 0
         ];
 
+        // 获取派对货币信息
+        $partyCurrency = Party::find($partyId);
+        $currencySymbol = '¥';
+        if ($partyCurrency && $partyCurrency->base_currency) {
+            $currency = Currency::getByCode($partyCurrency->base_currency);
+            $currencySymbol = $currency ? $currency->symbol : '¥';
+        }
+
         return view('/admin/party/members', [
             'party' => $party,
             'members' => $members,
-            'stats' => $stats
+            'stats' => $stats,
+            'currencySymbol' => $currencySymbol
         ]);
     }
 
@@ -288,5 +302,166 @@ class AdminController extends BaseController
             app()->settingService->updateSetting($key, $value);
         }
         return json(['ret' => 1, 'msg' => "设置已更新"]);
+    }
+
+    /**
+     * 货币管理页面
+     */
+    public function currencies(Request $request): View
+    {
+        $currencyService = app()->currencyService;
+        $currencies = $currencyService->getAllAvailableCurrencies();
+
+        return view('/admin/currencies', [
+            'currencies' => $currencies
+        ]);
+    }
+
+    /**
+     * 添加货币
+     */
+    public function addCurrency(Request $request): Json
+    {
+        $code = strtolower($request->param('code', ''));
+        $name = $request->param('name', '');
+        $nameEn = $request->param('name_en', '');
+        $symbol = $request->param('symbol', '');
+        $decimalPlaces = (int) $request->param('decimal_places', 2);
+
+        if (empty($code) || empty($name) || empty($symbol)) {
+            return json(['ret' => 0, 'msg' => '货币代码、名称和符号不能为空']);
+        }
+
+        // 验证货币代码格式
+        if (! preg_match('/^[a-z]{3}$/', $code)) {
+            return json(['ret' => 0, 'msg' => '货币代码必须是3位小写字母']);
+        }
+
+        try {
+            // 检查货币代码是否已存在
+            if (Currency::codeExists($code)) {
+                return json(['ret' => 0, 'msg' => '货币代码已存在']);
+            }
+
+            // 创建新货币
+            $currency = new Currency();
+            $currency->code = $code;
+            $currency->name = $name;
+            $currency->name_en = $nameEn ? : $code;
+            $currency->symbol = $symbol;
+            $currency->decimal_places = $decimalPlaces;
+            $currency->is_default = false;
+            $currency->is_active = true;
+
+            if ($currency->save()) {
+                return json(['ret' => 1, 'msg' => '货币添加成功']);
+            } else {
+                return json(['ret' => 0, 'msg' => '保存失败']);
+            }
+        } catch (Exception $e) {
+            return json(['ret' => 0, 'msg' => '添加失败：' . $e->getMessage()]);
+        }
+    }
+
+    /**
+     * 编辑货币
+     */
+    public function editCurrency(Request $request): Json
+    {
+        $code = strtolower($request->param('code', ''));
+        $name = $request->param('name', '');
+        $nameEn = $request->param('name_en', '');
+        $symbol = $request->param('symbol', '');
+        $decimalPlaces = (int) $request->param('decimal_places', 2);
+
+        if (empty($code) || empty($name) || empty($symbol)) {
+            return json(['ret' => 0, 'msg' => '货币代码、名称和符号不能为空']);
+        }
+
+        try {
+            // 查找货币
+            $currency = Currency::getByCode($code);
+            if (! $currency) {
+                return json(['ret' => 0, 'msg' => '货币代码不存在']);
+            }
+
+            // 更新货币信息
+            $currency->name = $name;
+            $currency->name_en = $nameEn ? : $code;
+            $currency->symbol = $symbol;
+            $currency->decimal_places = $decimalPlaces;
+
+            if ($currency->save()) {
+                return json(['ret' => 1, 'msg' => '货币更新成功'])->header(['HX-Refresh' => 'true']);
+            } else {
+                return json(['ret' => 0, 'msg' => '保存失败']);
+            }
+        } catch (Exception $e) {
+            return json(['ret' => 0, 'msg' => '更新失败：' . $e->getMessage()]);
+        }
+    }
+
+    /**
+     * 删除货币
+     */
+    public function deleteCurrency(Request $request): Json
+    {
+        $code = strtolower($request->param('code', ''));
+
+        if (empty($code)) {
+            return json(['ret' => 0, 'msg' => '货币代码不能为空']);
+        }
+
+        try {
+            // 查找货币
+            $currency = Currency::getByCode($code);
+            if (! $currency) {
+                return json(['ret' => 0, 'msg' => '货币代码不存在']);
+            }
+
+            // 检查是否为默认货币
+            if ($currency->is_default) {
+                return json(['ret' => 0, 'msg' => '不能删除默认货币']);
+            }
+            // TODO 检查是否有项目使用该货币
+
+            $currency->delete();
+
+            if ($currency->save()) {
+                return json(['ret' => 1, 'msg' => '货币删除成功'])->header(['HX-Refresh' => 'true']);
+            } else {
+                return json(['ret' => 0, 'msg' => '删除失败']);
+            }
+        } catch (Exception $e) {
+            return json(['ret' => 0, 'msg' => '删除失败：' . $e->getMessage()]);
+        }
+    }
+
+    /**
+     * 显示添加货币表单
+     */
+    public function addCurrencyForm(): View
+    {
+        return view('/admin/currency/add_form');
+    }
+
+    /**
+     * 显示编辑货币表单
+     */
+    public function editCurrencyForm(Request $request): View
+    {
+        $code = $request->param('code');
+        if (empty($code)) {
+            return view('/error', ['msg' => '货币代码不能为空']);
+        }
+
+        $currency = Currency::getByCode($code);
+        if (! $currency) {
+            return view('/error', ['msg' => '货币不存在']);
+        }
+
+        return view('/admin/currency/edit_form', [
+            'currency' => $currency
+        ]);
     }
 }

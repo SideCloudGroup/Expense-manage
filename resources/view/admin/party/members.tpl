@@ -103,7 +103,7 @@
                     <div class="col-md-3">
                         <div class="card">
                             <div class="card-body text-center">
-                                <div class="h2 mb-1 text-info">{:getUnitSign()} {$stats.total_amount}</div>
+                                <div class="h2 mb-1 text-info">{$currencySymbol} {$stats.total_amount}</div>
                                 <div class="text-muted">总金额</div>
                             </div>
                         </div>

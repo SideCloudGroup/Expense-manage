@@ -1,7 +1,6 @@
 <?php
 
 use think\migration\Migrator;
-use think\migration\db\Column;
 
 class UserStatus extends Migrator
 {

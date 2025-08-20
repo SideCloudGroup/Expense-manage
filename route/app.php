@@ -40,7 +40,6 @@ Route::group('/user', function () {
     Route::post('/item/:id', 'user/updateItemStatus');
     Route::get('/item', 'user/itemList');
     Route::get('/invoice', 'user/invoice');
-    Route::get('/currency', 'user/currency');
     Route::get('/logout', 'user/logout');
     Route::get('/profile', 'user/profile');
     Route::post('/profile', 'user/updateProfile');
@@ -64,9 +63,13 @@ Route::group('/user', function () {
     Route::get('/party/join', 'party/join');
     Route::post('/party/join', 'party/joinParty');
     Route::get('/party/:id/users', 'party/getMembers');
+    Route::get('/party/:id/info', 'party/getPartyInfo');
+    Route::get('/party/:id/edit', 'party/edit');
+    Route::post('/party/:id/update', 'party/update');
     Route::post('/party/:id/leave', 'party/leave');
     Route::post('/party/validate-timezone', 'party/validateTimezone');
     Route::get('/party/search-timezones', 'party/searchTimezones');
+    Route::post('/party/currency-info', 'party/getCurrencyInfo');
     Route::get('/party/:partyId/bestpay/download', 'user/downloadPartyBestPay');
     Route::post('/party/:partyId/bestpay/clear', 'user/clearPartyBestPay');
     Route::get('/party/:partyId/bestpay', 'user/partyBestPay');
@@ -85,6 +88,12 @@ Route::group('/admin', function () {
     Route::get('/party/:id/members', 'admin/partyMembers');
     Route::post('/party/members', 'admin/getPartyMembers');
     Route::get('/party', 'admin/party');
+    Route::get('/currency/add-form', 'admin/addCurrencyForm');
+    Route::post('/currency/add', 'admin/addCurrency');
+    Route::get('/currency/edit-form', 'admin/editCurrencyForm');
+    Route::post('/currency/edit', 'admin/editCurrency');
+    Route::delete('/currency/delete', 'admin/deleteCurrency');
+    Route::get('/currencies', 'admin/currencies');
     Route::get('setting', 'admin/settings');
     Route::post('setting', 'admin/updateSetting');
 })->middleware(Admin::class);

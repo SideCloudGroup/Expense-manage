@@ -4,7 +4,6 @@
 <div class="page">
     <div class="page-wrapper">
         <div class="container-xl">
-            <!-- 欢迎信息 -->
             <div class="page-header d-print-none">
                 <div class="row align-items-center justify-content-center">
                     <div class="col-auto">
@@ -28,7 +27,6 @@
                     </div>
                 </div>
 
-                <!-- 快速操作按钮 -->
                 <div class="row mt-3">
                     <div class="col-12 d-flex justify-content-center">
                         <div class="btn-list d-flex justify-content-center">
@@ -51,7 +49,6 @@
                 </div>
             </div>
 
-            <!-- 统计卡片 -->
             <div class="row row-deck row-cards mt-3">
                 <div class="col-sm-6 col-lg-3">
                     <div class="card">
@@ -72,7 +69,7 @@
                             <div class="d-flex align-items-center">
                                 <div class="subheader">待支付金额</div>
                             </div>
-                            <div class="h1 mb-3 text-danger">¥{$stats.total_unpaid_amount|default=0}</div>
+                            <div class="h1 mb-3 text-danger">{$currencySymbol}{$stats.total_unpaid_amount|default=0}</div>
                             <div class="d-flex mb-2">
                                 <div>需要支付的款项</div>
                             </div>
@@ -85,7 +82,7 @@
                             <div class="d-flex align-items-center">
                                 <div class="subheader">应收金额</div>
                             </div>
-                            <div class="h1 mb-3 text-success">¥{$stats.total_receivable_amount|default=0}</div>
+                            <div class="h1 mb-3 text-success">{$currencySymbol}{$stats.total_receivable_amount|default=0}</div>
                             <div class="d-flex mb-2">
                                 <div>等待收款的款项</div>
                             </div>
@@ -107,7 +104,6 @@
                 </div>
             </div>
 
-            <!-- 财务概览图表 -->
             <div class="row row-cards mt-3">
                 <div class="col-lg-8">
                     <div class="card">
@@ -118,13 +114,13 @@
                             <div class="row align-items-center">
                                 <div class="col-6">
                                     <div class="text-center">
-                                        <div class="h3 text-danger">¥{$stats.total_unpaid_amount|default=0}</div>
+                                        <div class="h3 text-danger">{$currencySymbol}{$stats.total_unpaid_amount|default=0}</div>
                                         <div class="text-muted">待支付</div>
                                     </div>
                                 </div>
                                 <div class="col-6">
                                     <div class="text-center">
-                                        <div class="h3 text-success">¥{$stats.total_receivable_amount|default=0}</div>
+                                        <div class="h3 text-success">{$currencySymbol}{$stats.total_receivable_amount|default=0}</div>
                                         <div class="text-muted">应收款</div>
                                     </div>
                                 </div>
@@ -195,7 +191,6 @@
                 </div>
             </div>
 
-            <!-- 最近加入的派对 -->
             {if $recentParties}
                 <div class="row row-cards mt-3">
                     <div class="col-12">
@@ -213,14 +208,14 @@
                                             <div class="card card-sm">
                                                 <div class="card-body">
                                                     <div class="d-flex align-items-center">
-                                                <span class="avatar me-3 rounded bg-blue-lt">
-                                                    <svg class="icon" fill="none" stroke="currentColor"
-                                                         viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round"
-                                                              stroke-width="2"
-                                                              d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
-                                                    </svg>
-                                                </span>
+                                                        <span class="avatar me-3 rounded bg-blue-lt">
+                                                            <svg class="icon" fill="none" stroke="currentColor"
+                                                                 viewBox="0 0 24 24">
+                                                                <path stroke-linecap="round" stroke-linejoin="round"
+                                                                      stroke-width="2"
+                                                                      d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+                                                            </svg>
+                                                        </span>
                                                         <div class="flex-fill">
                                                             <div class="font-weight-medium">{$party.name}</div>
                                                             {if $party.description}
@@ -247,7 +242,6 @@
 </div>
 
 <style>
-    /* 图片链接样式 */
     .page-header img {
         transition: transform 0.2s ease, filter 0.2s ease;
     }

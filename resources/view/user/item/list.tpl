@@ -33,7 +33,7 @@
                                             {/if}
                                             <div class="mt-2">
                                                 <span class="badge bg-warning text-warning-fg">
-                                                    未收款: ¥{$party.total_amount|default=0}
+                                                    未收款: {$currencySymbol}{$party.total_amount|default=0}
                                                 </span>
                                             </div>
                                         </div>

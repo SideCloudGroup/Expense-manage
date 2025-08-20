@@ -13,17 +13,6 @@
                             <h2 class="page-title">派对管理</h2>
                             <div class="text-muted mt-1">管理系统中的所有派对，查看成员和支付统计</div>
                         </div>
-                        <div class="col-auto ms-auto d-print-none">
-                            <div class="btn-list">
-                                <a href="/admin" class="btn btn-secondary">
-                                    <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                              d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
-                                    </svg>
-                                    返回首页
-                                </a>
-                            </div>
-                        </div>
                     </div>
                 </div>
 
@@ -90,7 +79,7 @@
                                         </div>
                                         <div class="col-6">
                                             <div class="text-center p-2 bg-light rounded">
-                                                <div class="h4 mb-1 text-info">{:getUnitSign()} {$party.total_amount}</div>
+                                                <div class="h4 mb-1 text-info">{$party.currency_symbol} {$party.total_amount}</div>
                                                 <div class="text-muted small">总金额</div>
                                             </div>
                                         </div>

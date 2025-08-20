@@ -14,6 +14,15 @@
                     </div>
                     <div class="col-auto ms-auto d-print-none">
                         <div class="btn-list">
+                            {if $isOwner}
+                                <a href="/user/party/{$party.id}/edit" class="btn btn-warning">
+                                    <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                              d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                                    </svg>
+                                    编辑派对
+                                </a>
+                            {/if}
                             <a href="/user/party/{$party.id}/bestpay" class="btn btn-success">
                                 <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -71,6 +80,33 @@
                             <div class="mb-3">
                                 <label class="form-label">时区设置</label>
                                 <div class="form-control-plaintext">{:formatTimezone($party.timezone)}</div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">基础货币</label>
+                                <div class="form-control-plaintext">{$party.base_currency|strtoupper}</div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">支持的货币</label>
+                                <div class="form-control-plaintext">
+                                    {if $party.supported_currencies}
+                                        {php}
+                                            $currencies = json_decode($party->supported_currencies, true);
+                                            $currencyNames = [];
+                                            foreach ($currencies as $currency) {
+                                            if (isset($all_currencies[$currency])) {
+                                            $currencyNames[] = $all_currencies[$currency]['name'] . ' (' . strtoupper($currency) . ')';
+                                            } else {
+                                            $currencyNames[] = strtoupper($currency);
+                                            }
+                                            }
+                                            echo implode(', ', $currencyNames);
+                                        {/php}
+                                    {else}
+                                        {$all_currencies[$party.base_currency].name} ({$party.base_currency|strtoupper})
+                                    {/if}
+                                </div>
                             </div>
 
                             <div class="mb-3">
@@ -141,7 +177,7 @@
                                         {foreach $items as $item}
                                             <tr>
                                                 <td>{$item.description}</td>
-                                                <td>{$item.amount}</td>
+                                                <td>{$currencySymbol}{$item.amount}</td>
                                                 <td>{$item.payer_name}</td>
                                                 <td>{$item.initiator_name}</td>
                                                 <td>
