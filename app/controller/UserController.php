@@ -95,7 +95,7 @@ class UserController extends BaseController
             if (! isset($exchangeRate[$request->param('unit')])) {
                 return json(['ret' => 0, 'msg' => '无法获取该货币的汇率信息']);
             }
-            $amount = $request->param('amount') / $exchangeRate[$request->param('unit')];
+            $amount = bcdiv((string) $request->param('amount'), (string) $exchangeRate[$request->param('unit')], 2);
         }
 
         foreach ($users as $user) {
@@ -177,7 +177,7 @@ class UserController extends BaseController
         foreach ($userItems as $item) {
             $stats['total_items_to_pay']++;
             if ($item['paid'] == 0) {
-                $stats['total_unpaid_amount'] += $item['amount'];
+                $stats['total_unpaid_amount'] = bcadd((string) $stats['total_unpaid_amount'], (string) $item['amount'], 2);
                 $stats['total_unpaid_items']++;
             }
         }
@@ -185,7 +185,7 @@ class UserController extends BaseController
         foreach ($initiatorItems as $item) {
             $stats['total_items_created']++;
             if ($item['paid'] == 0) {
-                $stats['total_receivable_amount'] += $item['amount'];
+                $stats['total_receivable_amount'] = bcadd((string) $stats['total_receivable_amount'], (string) $item['amount'], 2);
                 $stats['total_receivable_items']++;
             }
         }
@@ -196,7 +196,7 @@ class UserController extends BaseController
         $currencyCode = $defaultCurrency ? strtoupper($defaultCurrency->code) : 'CNY';
 
         // 计算衍生统计数据
-        $stats['total_amount'] = $stats['total_unpaid_amount'] + $stats['total_receivable_amount'];
+        $stats['total_amount'] = bcadd((string) $stats['total_unpaid_amount'], (string) $stats['total_receivable_amount'], 2);
         $stats['total_items'] = $stats['total_items_created'] + $stats['total_items_to_pay'];
 
         // 计算实际的项目总数（所有相关项目）
@@ -204,11 +204,11 @@ class UserController extends BaseController
 
         // 计算百分比（基于实际项目数量）
         if ($stats['total_all_items'] > 0) {
-            $stats['unpaid_percentage'] = round(($stats['total_unpaid_items'] / $stats['total_all_items']) * 100, 1);
-            $stats['receivable_percentage'] = round(($stats['total_receivable_items'] / $stats['total_all_items']) * 100, 1);
+            $stats['unpaid_percentage'] = bcmul(bcdiv((string) $stats['total_unpaid_items'], (string) $stats['total_all_items'], 3), '100', 1);
+            $stats['receivable_percentage'] = bcmul(bcdiv((string) $stats['total_receivable_items'], (string) $stats['total_all_items'], 3), '100', 1);
         } else {
-            $stats['unpaid_percentage'] = 0;
-            $stats['receivable_percentage'] = 0;
+            $stats['unpaid_percentage'] = '0.0';
+            $stats['receivable_percentage'] = '0.0';
         }
 
         // 获取最近的5个派对
@@ -282,9 +282,9 @@ class UserController extends BaseController
             ->select();
 
         // 计算总金额
-        $totalAmount = 0;
+        $totalAmount = '0';
         foreach ($items as $item) {
-            $totalAmount += $item['amount'];
+            $totalAmount = bcadd($totalAmount, (string) $item['amount'], 2);
         }
 
         // 获取派对货币信息
@@ -362,16 +362,16 @@ class UserController extends BaseController
             ->select();
 
         // 计算金额统计
-        $totalAmount = 0;
-        $paidAmount = 0;
-        $unpaidAmount = 0;
+        $totalAmount = '0';
+        $paidAmount = '0';
+        $unpaidAmount = '0';
 
         foreach ($items as $item) {
-            $totalAmount += $item['amount'];
-            if ($item['paid']) {
-                $paidAmount += $item['amount'];
+            $totalAmount = bcadd($totalAmount, (string) $item['amount'], 2);
+            if ($item['paid'] == 1) {
+                $paidAmount = bcadd($paidAmount, (string) $item['amount'], 2);
             } else {
-                $unpaidAmount += $item['amount'];
+                $unpaidAmount = bcadd($unpaidAmount, (string) $item['amount'], 2);
             }
         }
 

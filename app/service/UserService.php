@@ -54,9 +54,9 @@ class UserService extends Service
             return ['ret' => 0, 'msg' => 'User not found'];
         }
         $userDetails = (new Item())->where('userid', $id)->select()->toArray();
-        $totalPrice = 0.0;
+        $totalPrice = '0';
         foreach ($userDetails as $item) {
-            $totalPrice += $item['amount'];
+            $totalPrice = bcadd($totalPrice, (string)$item['amount'], 2);
         }
         return ['ret' => 1, 'data' => $userDetails, 'totalPrice' => $totalPrice];
     }
@@ -109,9 +109,9 @@ class UserService extends Service
         $unpaid = (new Item())->where('paid', 0)->field(['userid, amount, initiator'])->select();
         foreach ($unpaid as $item) {
             if (! isset($userUnpaid[$item->userid][$item->initiator])) {
-                $userUnpaid[$item->userid][$item->initiator] = 0;
+                $userUnpaid[$item->userid][$item->initiator] = '0';
             }
-            $userUnpaid[$item->userid][$item->initiator] += $item->amount;
+            $userUnpaid[$item->userid][$item->initiator] = bcadd($userUnpaid[$item->userid][$item->initiator], (string)$item->amount, 2);
         }
         $tmpResult = [];
         // 抵消付款人和收款人
@@ -123,19 +123,19 @@ class UserService extends Service
                 if (isset($tmpResult[$payer_id][$payee_id]) || isset($tmpResult[$payee_id][$payer_id])) {
                     continue;
                 }
-                $diff = ($userUnpaid[$payer_id][$payee_id] ?? 0) - ($userUnpaid[$payee_id][$payer_id] ?? 0);
+                $diff = bcsub(($userUnpaid[$payer_id][$payee_id] ?? '0'), ($userUnpaid[$payee_id][$payer_id] ?? '0'), 2);
                 match (true) {
-                    $diff < 0 => [
-                        $tmpResult[$payer_id][$payee_id] = 0,
-                        $tmpResult[$payee_id][$payer_id] = -$diff,
+                    bccomp($diff, '0', 2) < 0 => [
+                        $tmpResult[$payer_id][$payee_id] = '0',
+                        $tmpResult[$payee_id][$payer_id] = bcsub('0', $diff, 2),
                     ],
-                    $diff > 0 => [
+                    bccomp($diff, '0', 2) > 0 => [
                         $tmpResult[$payer_id][$payee_id] = $diff,
-                        $tmpResult[$payee_id][$payer_id] = 0,
+                        $tmpResult[$payee_id][$payer_id] = '0',
                     ],
                     default => [
-                        $tmpResult[$payer_id][$payee_id] = 0,
-                        $tmpResult[$payee_id][$payer_id] = 0,
+                        $tmpResult[$payer_id][$payee_id] = '0',
+                        $tmpResult[$payee_id][$payer_id] = '0',
                     ],
                 };
             }
@@ -158,13 +158,13 @@ class UserService extends Service
         foreach ($debtsDict as $debtor => $creditors) {
             foreach ($creditors as $creditor => $amount) {
                 if (! isset($balance[$debtor])) {
-                    $balance[$debtor] = 0;
+                    $balance[$debtor] = '0';
                 }
                 if (! isset($balance[$creditor])) {
-                    $balance[$creditor] = 0;
+                    $balance[$creditor] = '0';
                 }
-                $balance[$debtor] -= $amount;
-                $balance[$creditor] += $amount;
+                $balance[$debtor] = bcsub($balance[$debtor], (string)$amount, 2);
+                $balance[$creditor] = bcadd($balance[$creditor], (string)$amount, 2);
             }
         }
 
@@ -172,10 +172,10 @@ class UserService extends Service
         $creditors = [];
         $debtors = [];
         foreach ($balance as $person => $bal) {
-            if ($bal > 0) {
+            if (bccomp($bal, '0', 2) > 0) {
                 $creditors[] = [$person, $bal];
-            } elseif ($bal < 0) {
-                $debtors[] = [$person, -$bal];
+            } elseif (bccomp($bal, '0', 2) < 0) {
+                $debtors[] = [$person, bcsub('0', $bal, 2)];
             }
         }
 
@@ -187,13 +187,13 @@ class UserService extends Service
             list($creditor, $credAmount) = $creditors[$i];
             list($debtor, $debtAmount) = $debtors[$j];
 
-            if ($credAmount > $debtAmount) {
+            if (bccomp($credAmount, $debtAmount, 2) > 0) {
                 $optimizedDebts[] = [$debtor, $creditor, $debtAmount];
-                $creditors[$i][1] -= $debtAmount;
+                $creditors[$i][1] = bcsub($credAmount, $debtAmount, 2);
                 $j++;
-            } elseif ($credAmount < $debtAmount) {
+            } elseif (bccomp($credAmount, $debtAmount, 2) < 0) {
                 $optimizedDebts[] = [$debtor, $creditor, $credAmount];
-                $debtors[$j][1] -= $credAmount;
+                $debtors[$j][1] = bcsub($debtAmount, $credAmount, 2);
                 $i++;
             } else {
                 $optimizedDebts[] = [$debtor, $creditor, $credAmount];
@@ -209,7 +209,7 @@ class UserService extends Service
             if (! isset($optimizedDict[$debtor])) {
                 $optimizedDict[$debtor] = [];
             }
-            $optimizedDict[$debtor][$creditor] = round($amount, 2);
+            $optimizedDict[$debtor][$creditor] = (string)$amount;
         }
 
         return [$optimizedDict, $stage1];
@@ -243,9 +243,9 @@ class UserService extends Service
 
         foreach ($unpaid as $item) {
             if (! isset($userUnpaid[$item->userid][$item->initiator])) {
-                $userUnpaid[$item->userid][$item->initiator] = 0;
+                $userUnpaid[$item->userid][$item->initiator] = '0';
             }
-            $userUnpaid[$item->userid][$item->initiator] += $item->amount;
+            $userUnpaid[$item->userid][$item->initiator] = bcadd($userUnpaid[$item->userid][$item->initiator], (string)$item->amount, 2);
         }
 
         $tmpResult = [];
@@ -258,19 +258,19 @@ class UserService extends Service
                 if (isset($tmpResult[$payer_id][$payee_id]) || isset($tmpResult[$payee_id][$payer_id])) {
                     continue;
                 }
-                $diff = ($userUnpaid[$payer_id][$payee_id] ?? 0) - ($userUnpaid[$payee_id][$payer_id] ?? 0);
+                $diff = bcsub(($userUnpaid[$payer_id][$payee_id] ?? '0'), ($userUnpaid[$payee_id][$payer_id] ?? '0'), 2);
                 match (true) {
-                    $diff < 0 => [
-                        $tmpResult[$payer_id][$payee_id] = 0,
-                        $tmpResult[$payee_id][$payer_id] = -$diff,
+                    bccomp($diff, '0', 2) < 0 => [
+                        $tmpResult[$payer_id][$payee_id] = '0',
+                        $tmpResult[$payee_id][$payer_id] = bcsub('0', $diff, 2),
                     ],
-                    $diff > 0 => [
+                    bccomp($diff, '0', 2) > 0 => [
                         $tmpResult[$payer_id][$payee_id] = $diff,
-                        $tmpResult[$payee_id][$payer_id] = 0,
+                        $tmpResult[$payee_id][$payer_id] = '0',
                     ],
                     default => [
-                        $tmpResult[$payer_id][$payee_id] = 0,
-                        $tmpResult[$payee_id][$payer_id] = 0,
+                        $tmpResult[$payer_id][$payee_id] = '0',
+                        $tmpResult[$payee_id][$payer_id] = '0',
                     ],
                 };
             }
@@ -296,13 +296,13 @@ class UserService extends Service
         foreach ($debtsDict as $debtor => $creditors) {
             foreach ($creditors as $creditor => $amount) {
                 if (! isset($balance[$debtor])) {
-                    $balance[$debtor] = 0;
+                    $balance[$debtor] = '0';
                 }
                 if (! isset($balance[$creditor])) {
-                    $balance[$creditor] = 0;
+                    $balance[$creditor] = '0';
                 }
-                $balance[$debtor] -= $amount;
-                $balance[$creditor] += $amount;
+                $balance[$debtor] = bcsub($balance[$debtor], (string)$amount, 2);
+                $balance[$creditor] = bcadd($balance[$creditor], (string)$amount, 2);
             }
         }
 
@@ -310,10 +310,10 @@ class UserService extends Service
         $creditors = [];
         $debtors = [];
         foreach ($balance as $person => $bal) {
-            if ($bal > 0) {
+            if (bccomp($bal, '0', 2) > 0) {
                 $creditors[] = [$person, $bal];
-            } elseif ($bal < 0) {
-                $debtors[] = [$person, -$bal];
+            } elseif (bccomp($bal, '0', 2) < 0) {
+                $debtors[] = [$person, bcsub('0', $bal, 2)];
             }
         }
 
@@ -325,13 +325,13 @@ class UserService extends Service
             list($creditor, $credAmount) = $creditors[$i];
             list($debtor, $debtAmount) = $debtors[$j];
 
-            if ($credAmount > $debtAmount) {
+            if (bccomp($credAmount, $debtAmount, 2) > 0) {
                 $optimizedDebts[] = [$debtor, $creditor, $debtAmount];
-                $creditors[$i][1] -= $debtAmount;
+                $creditors[$i][1] = bcsub($credAmount, $debtAmount, 2);
                 $j++;
-            } elseif ($credAmount < $debtAmount) {
+            } elseif (bccomp($credAmount, $debtAmount, 2) < 0) {
                 $optimizedDebts[] = [$debtor, $creditor, $credAmount];
-                $debtors[$j][1] -= $credAmount;
+                $debtors[$j][1] = bcsub($debtAmount, $credAmount, 2);
                 $i++;
             } else {
                 $optimizedDebts[] = [$debtor, $creditor, $credAmount];
@@ -347,7 +347,7 @@ class UserService extends Service
             if (! isset($optimizedDict[$debtor])) {
                 $optimizedDict[$debtor] = [];
             }
-            $optimizedDict[$debtor][$creditor] = round($amount, 2);
+            $optimizedDict[$debtor][$creditor] = (string)$amount;
         }
 
         return [$optimizedDict, $stage1];

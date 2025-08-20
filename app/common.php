@@ -11,12 +11,8 @@ function formatTimezone(string $timezone): string
     // 尝试验证时区是否有效
     try {
         $dateTimeZone = new DateTimeZone($timezone);
-        // 获取当前时区的偏移量（自动处理夏令时）
-        $dateTime = new DateTime('now', $dateTimeZone);
-        $offset = $dateTime->format('P');
-        return $timezone . ' (' . $offset . ')';
-    } catch (Exception $e) {
-        // 如果时区无效，返回原始值
         return $timezone;
+    } catch (Exception $e) {
+        return 'Asia/Shanghai'; // 默认时区
     }
 }

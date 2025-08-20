@@ -27,7 +27,7 @@ class AdminController extends BaseController
         $unpaidItems = Db::table('item')->where('paid', 0)->count();
 
         // 计算项目未支付比例
-        $unpaidItemsPercentage = $totalItems > 0 ? round(($unpaidItems / $totalItems) * 100, 1) : 0;
+        $unpaidItemsPercentage = $totalItems > 0 ? bcmul(bcdiv((string) $unpaidItems, (string) $totalItems, 3), '100', 1) : '0.0';
 
         // 派对统计
         $totalParties = Db::table('party')->count();
@@ -205,11 +205,11 @@ class AdminController extends BaseController
                 $parties[$key]['paid_items'] = $partyStat['paid_items'] ? : 0;
                 $parties[$key]['paid_amount'] = $partyStat['paid_amount'] ? : 0;
                 $parties[$key]['unpaid_items'] = $partyStat['total_items'] - $partyStat['paid_items'];
-                $parties[$key]['unpaid_amount'] = $partyStat['total_amount'] - $partyStat['paid_amount'];
+                $parties[$key]['unpaid_amount'] = bcsub((string) $partyStat['total_amount'], (string) $partyStat['paid_amount'], 2);
 
                 // 计算支付完成率
                 $parties[$key]['payment_completion_rate'] = $partyStat['total_items'] > 0 ?
-                    round(($partyStat['paid_items'] / $partyStat['total_items']) * 100, 1) : 0;
+                    bcmul(bcdiv((string) $partyStat['paid_items'], (string) $partyStat['total_items'], 3), '100', 1) : '0.0';
             } else {
                 $parties[$key]['total_items'] = 0;
                 $parties[$key]['total_amount'] = 0;
@@ -272,8 +272,8 @@ class AdminController extends BaseController
             'paid_items' => $paidItems,
             'paid_amount' => $paidAmount,
             'unpaid_items' => $totalItems - $paidItems,
-            'unpaid_amount' => $totalAmount - $paidAmount,
-            'payment_completion_rate' => $totalItems > 0 ? round(($paidItems / $totalItems) * 100, 1) : 0
+            'unpaid_amount' => bcsub((string) $totalAmount, (string) $paidAmount, 2),
+            'payment_completion_rate' => $totalItems > 0 ? bcmul(bcdiv((string) $paidItems, (string) $totalItems, 3), '100', 1) : '0.0'
         ];
 
         // 获取派对货币信息
