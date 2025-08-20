@@ -18,6 +18,7 @@ class Item extends Validate
         'amount' => 'require|float',
         'users' => 'require|array',
         'unit' => 'require|string',
+        'party_id' => 'require|integer',
     ];
 
     protected $message = [
@@ -28,5 +29,7 @@ class Item extends Validate
         'users.array' => '用户必须为数组',
         'unit.require' => '单位不能为空',
         'unit.string' => '单位必须为字符串',
+        'party_id.require' => '请选择派对',
+        'party_id.integer' => '派对ID无效',
     ];
 }

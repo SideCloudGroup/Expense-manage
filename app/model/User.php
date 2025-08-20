@@ -13,6 +13,7 @@ use think\Model;
  * @property string $uuid
  * @property bool $mfa_enable
  * @property bool $enable
+ * @property bool $is_admin
  */
 class User extends Model
 {

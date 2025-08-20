@@ -5,7 +5,7 @@
             <div class="empty-header">404</div>
             <p class="empty-title">请求的页面不存在</p>
             <div class="empty-action">
-                <a class="btn btn-primary" href="./.">
+                <a class="btn btn-primary" href="javascript:void(0);" onclick="history.back()">
                     <svg class="icon" fill="none" height="24" stroke="currentColor" stroke-linecap="round"
                          stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" width="24"
                          xmlns="http://www.w3.org/2000/svg">
