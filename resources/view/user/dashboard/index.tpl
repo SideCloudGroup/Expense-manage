@@ -8,8 +8,8 @@
             <div class="page-header d-print-none">
                 <div class="row align-items-center justify-content-center">
                     <div class="col-auto">
-                        <a href="https://www.bilibili.com/video/BV1ea4y1W7x1" target="_blank" title="点击观看B站视频">
-                            <img src="/static/imgs/taffynya_agadgqyaaofp2fq.png" alt="派对女孩1"
+                        <a href="https://www.bilibili.com/video/BV1ea4y1W7x1" target="_blank" title="关注永雏塔菲喵">
+                            <img src="/static/imgs/taffynya_agadgqyaaofp2fq.png"
                                  style="width: 80px; height: 80px; object-fit: contain; cursor: pointer; transition: transform 0.2s ease;">
                         </a>
                     </div>
@@ -20,8 +20,9 @@
                         </div>
                     </div>
                     <div class="col-auto">
-                        <a href="https://www.bilibili.com/video/BV1EF3uzeETo" target="_blank" title="点击观看B站视频">
-                            <img src="/static/imgs/taffynya_agadvgmaauwawfq.png" alt="派对女孩2"
+                        <a href="https://www.bilibili.com/video/BV1EF3uzeETo" target="_blank"
+                           title="关注永雏塔菲谢谢喵">
+                            <img src="/static/imgs/taffynya_agadvgmaauwawfq.png"
                                  style="width: 80px; height: 80px; object-fit: contain; cursor: pointer; transition: transform 0.2s ease;">
                         </a>
                     </div>
@@ -178,15 +179,15 @@
                                     查看总未支付款项
                                 </a>
                                 {if app()->userService->getUser()->is_admin}
-                                <a href="/admin" class="btn btn-outline-warning">
-                                    <svg class="icon me-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                              d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                              d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                                    </svg>
-                                    管理界面
-                                </a>
+                                    <a href="/admin" class="btn btn-outline-warning">
+                                        <svg class="icon me-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                  d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                  d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                        </svg>
+                                        管理界面
+                                    </a>
                                 {/if}
                             </div>
                         </div>

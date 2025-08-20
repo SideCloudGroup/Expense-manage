@@ -97,17 +97,17 @@
 
 {if $method['fido']}
 <script>
-    let successDialog = new bootstrap.Modal(document.getElementById('success-dialog'));
-    let failDialog = new bootstrap.Modal(document.getElementById('fail-dialog'));
+    let successDialog = new tabler.bootstrap.Modal(document.getElementById('success-dialog'));
+    let failDialog = new tabler.bootstrap.Modal(document.getElementById('fail-dialog'));
 
-    const { startAuthentication } =
-    SimpleWebAuthnBrowser;
+    const {startAuthentication} =
+        SimpleWebAuthnBrowser;
     document.getElementById('webauthnLogin').addEventListener('click', async () => {
         const resp = await fetch('/auth/fido_request');
         const options = await resp.json();
         let asseResp;
         try {
-            asseResp = await startAuthentication({ optionsJSON: options });
+            asseResp = await startAuthentication({optionsJSON: options});
         } catch (error) {
             document.getElementById("fail-message").innerHTML = error;
             throw error;

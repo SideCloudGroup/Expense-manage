@@ -67,6 +67,9 @@ Route::group('/user', function () {
     Route::post('/party/:id/leave', 'party/leave');
     Route::post('/party/validate-timezone', 'party/validateTimezone');
     Route::get('/party/search-timezones', 'party/searchTimezones');
+    Route::get('/party/:partyId/bestpay/download', 'user/downloadPartyBestPay');
+    Route::post('/party/:partyId/bestpay/clear', 'user/clearPartyBestPay');
+    Route::get('/party/:partyId/bestpay', 'user/partyBestPay');
     Route::delete('/party/:id', 'party/destroy');
     Route::get('/party/:id', 'party/show');
     Route::get('/party', 'party/index');
@@ -79,12 +82,9 @@ Route::group('/admin', function () {
     Route::get('/user', 'admin/user');
     Route::post('/user/change-password', 'admin/changePassword');
     Route::post('/user/toggle-admin', 'admin/toggleAdmin');
-    Route::post('/item/:id', 'admin/updateItemStatus');
-    Route::delete('/item/:id', 'admin/itemDelete');
-    Route::get('/item', 'admin/itemList');
-    Route::get('/total/download', 'admin/downloadBestPay');
-    Route::post('/total/clear', 'admin/clearBestPay');
-    Route::get('/total', 'admin/bestPay');
+    Route::get('/party/:id/members', 'admin/partyMembers');
+    Route::post('/party/members', 'admin/getPartyMembers');
+    Route::get('/party', 'admin/party');
     Route::get('setting', 'admin/settings');
     Route::post('setting', 'admin/updateSetting');
 })->middleware(Admin::class);

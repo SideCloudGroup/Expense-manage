@@ -11,7 +11,7 @@
                 管理后台
             </a>
         </div>
-        
+
         <!-- 侧边栏导航 -->
         <div class="collapse navbar-collapse" id="sidebar-menu">
             <ul class="navbar-nav pt-lg-3">
@@ -23,7 +23,7 @@
                         <span class="nav-link-title">首页</span>
                     </a>
                 </li>
-                
+
                 <li class="nav-item">
                     <a class="nav-link" href="/admin/user">
                         <span class="nav-link-icon d-md-none d-lg-inline-block">
@@ -32,25 +32,17 @@
                         <span class="nav-link-title">用户列表</span>
                     </a>
                 </li>
-                
+
+
                 <li class="nav-item">
-                    <a class="nav-link" href="/admin/item">
+                    <a class="nav-link" href="/admin/party">
                         <span class="nav-link-icon d-md-none d-lg-inline-block">
-                            <i class="fa-solid fa-table-list"></i>
+                            <i class="fa-solid fa-users"></i>
                         </span>
-                        <span class="nav-link-title">项目管理</span>
+                        <span class="nav-link-title">派对管理</span>
                     </a>
                 </li>
-                
-                <li class="nav-item">
-                    <a class="nav-link" href="/admin/total">
-                        <span class="nav-link-icon d-md-none d-lg-inline-block">
-                            <i class="fa-solid fa-magnifying-glass-dollar"></i>
-                        </span>
-                        <span class="nav-link-title">计算最优待支付</span>
-                    </a>
-                </li>
-                
+
                 <li class="nav-item">
                     <a class="nav-link" href="/admin/setting">
                         <span class="nav-link-icon d-md-none d-lg-inline-block">
@@ -60,7 +52,7 @@
                     </a>
                 </li>
             </ul>
-            
+
             <!-- 主题切换按钮 -->
             <div class="nav-item mt-auto mb-2">
                 <button class="btn btn-outline-light w-100" id="theme-toggle" title="切换主题">
@@ -68,7 +60,7 @@
                     切换主题
                 </button>
             </div>
-            
+
             <!-- 返回用户端按钮 -->
             <a class="nav-item btn btn-outline-light w-100 mb-1" href="/" title="返回用户端">
                 <i class="fa-solid fa-arrow-left me-2"></i>
@@ -78,70 +70,55 @@
     </div>
 </aside>
 
-<!-- 顶部栏 -->
-<header class="navbar navbar-expand-md navbar-light d-none d-lg-flex flex-md-row flex-column" data-bs-theme="auto">
-    <div class="container-fluid">
-        <div class="navbar-nav flex-row order-md-last ms-auto">
-            <!-- 返回用户端快捷按钮 -->
-            <div class="nav-item me-2">
-                <a href="/" class="btn btn-outline-primary" title="返回用户端">
-                    <i class="fa-solid fa-arrow-left me-1"></i>
-                    返回用户端
-                </a>
-            </div>
-        </div>
-    </div>
-</header>
-
 <!-- 主题切换脚本 -->
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    const themeToggle = document.getElementById('theme-toggle');
-    const themeIcon = document.getElementById('theme-icon');
-    
-    // 获取当前主题
-    function getCurrentTheme() {
-        return document.documentElement.getAttribute('data-bs-theme') || 'light';
-    }
-    
-    // 设置主题
-    function setTheme(theme) {
-        document.documentElement.setAttribute('data-bs-theme', theme);
-        localStorage.setItem('admin-theme', theme);
-        
-        // 更新图标
-        if (theme === 'dark') {
-            themeIcon.className = 'fa-solid fa-sun me-2';
-            themeToggle.title = '切换到亮色模式';
-        } else {
-            themeIcon.className = 'fa-solid fa-moon me-2';
-            themeToggle.title = '切换到暗色模式';
+    document.addEventListener('DOMContentLoaded', function () {
+        const themeToggle = document.getElementById('theme-toggle');
+        const themeIcon = document.getElementById('theme-icon');
+
+        // 获取当前主题
+        function getCurrentTheme() {
+            return document.documentElement.getAttribute('data-bs-theme') || 'light';
         }
-    }
-    
-    // 切换主题
-    function toggleTheme() {
-        const currentTheme = getCurrentTheme();
-        const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-        setTheme(newTheme);
-    }
-    
-    // 初始化主题
-    function initTheme() {
-        // 优先使用用户保存的主题
-        const savedTheme = localStorage.getItem('admin-theme');
-        if (savedTheme) {
-            setTheme(savedTheme);
-        } else {
-            // 默认使用亮色主题（因为侧边栏已经是暗色了）
-            setTheme('light');
+
+        // 设置主题
+        function setTheme(theme) {
+            document.documentElement.setAttribute('data-bs-theme', theme);
+            localStorage.setItem('admin-theme', theme);
+
+            // 更新图标
+            if (theme === 'dark') {
+                themeIcon.className = 'fa-solid fa-sun me-2';
+                themeToggle.title = '切换到亮色模式';
+            } else {
+                themeIcon.className = 'fa-solid fa-moon me-2';
+                themeToggle.title = '切换到暗色模式';
+            }
         }
-    }
-    
-    // 绑定事件
-    themeToggle.addEventListener('click', toggleTheme);
-    
-    // 初始化
-    initTheme();
-});
+
+        // 切换主题
+        function toggleTheme() {
+            const currentTheme = getCurrentTheme();
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            setTheme(newTheme);
+        }
+
+        // 初始化主题
+        function initTheme() {
+            // 优先使用用户保存的主题
+            const savedTheme = localStorage.getItem('admin-theme');
+            if (savedTheme) {
+                setTheme(savedTheme);
+            } else {
+                // 默认使用亮色主题（因为侧边栏已经是暗色了）
+                setTheme('light');
+            }
+        }
+
+        // 绑定事件
+        themeToggle.addEventListener('click', toggleTheme);
+
+        // 初始化
+        initTheme();
+    });
 </script>

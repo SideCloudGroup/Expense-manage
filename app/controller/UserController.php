@@ -6,15 +6,18 @@ namespace app\controller;
 use app\BaseController;
 use app\model\Item;
 use app\model\MFACredential;
+use app\model\Party;
 use app\service\MFA\FIDO;
 use app\service\MFA\TOTP;
 use app\service\MFA\WebAuthn;
+use Exception;
 use think\exception\ValidateException;
 use think\facade\Cookie;
 use think\facade\Db;
 use think\facade\Session;
 use think\Request;
 use think\response\Json;
+use think\response\Response;
 use think\response\View;
 use voku\helper\AntiXSS;
 
@@ -520,5 +523,112 @@ class UserController extends BaseController
         }
         $device->delete();
         return json(['ret' => 1, 'msg' => '删除成功'])->header(['HX-Refresh' => 'true']);
+    }
+
+    /**
+     * 显示派对最优支付页面
+     */
+    public function partyBestPay(Request $request, int $partyId): View
+    {
+        $userId = Session::get('userid');
+
+        // 检查用户是否为派对成员
+        $isMember = Db::table('party_member')
+                ->where('party_id', $partyId)
+                ->where('user_id', $userId)
+                ->count() > 0;
+
+        if (! $isMember) {
+            return view('/404');
+        }
+
+        // 获取派对信息
+        $party = Party::find($partyId);
+        if (! $party) {
+            return view('/404');
+        }
+
+        // 检查是否为派对所有者
+        $isOwner = $party->owner_id === $userId;
+
+        // 获取最优支付方案
+        $bestPay = $this->app->userService->getPartyBestPay($partyId);
+        $userStat = $this->app->userService->getPartyUserStat($partyId);
+
+        return view('/user/party/bestpay', [
+            'party' => $party,
+            'bestPayAll' => $bestPay[1],
+            'bestPayFinal' => $bestPay[0],
+            'userStat' => $userStat,
+            'isOwner' => $isOwner
+        ]);
+    }
+
+    /**
+     * 下载派对最优支付方案
+     */
+    public function downloadPartyBestPay(Request $request, int $partyId): \think\Response
+    {
+        $userId = Session::get('userid');
+        // 检查用户是否为派对成员
+        $isMember = Db::table('party_member')
+                ->where('party_id', $partyId)
+                ->where('user_id', $userId)
+                ->count() > 0;
+        if (! $isMember) {
+            return response('无权限访问', 403);
+        }
+        // 获取派对信息
+        $party = Party::find($partyId);
+        if (! $party) {
+            return response('派对不存在', 404);
+        }
+        // 获取最优支付方案
+        $bestPay = $this->app->userService->getPartyBestPay($partyId);
+        $userStat = $this->app->userService->getPartyUserStat($partyId);
+        $data = [
+            'party_name' => $party->name,
+            'party_description' => $party->description,
+            'bestPayFinal' => $bestPay[0],
+            'userStat' => $userStat,
+            'export_time' => date('Y-m-d H:i:s')
+        ];
+        $json = json_encode($data, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
+        $filename = 'party_bestpay_' . $party->name . '_' . date('Ymd_His') . '.json';
+        $tempPath = runtime_path() . 'temp/' . uniqid('party_bestpay_', true) . '.json';
+        file_put_contents($tempPath, $json);
+        return download($tempPath, $filename, false, 60);
+    }
+
+    /**
+     * 清空派对待支付记录（仅派对所有者）
+     */
+    public function clearPartyBestPay(Request $request, int $partyId): Json
+    {
+        $userId = Session::get('userid');
+
+        // 检查用户是否为派对所有者
+        $party = Party::find($partyId);
+        if (! $party) {
+            return json(['ret' => 0, 'msg' => '派对不存在']);
+        }
+
+        if ($party->owner_id !== $userId) {
+            return json(['ret' => 0, 'msg' => '只有派对所有者可以清空记录']);
+        }
+
+        try {
+            // 将派对内所有未支付项目标记为已支付
+            Db::table('item')
+                ->where('party_id', $partyId)
+                ->where('paid', false)
+                ->update(['paid' => true]);
+
+            return json(['ret' => 1, 'msg' => '派对待支付记录已清空'])
+                ->header(['HX-Refresh' => 'true']);
+
+        } catch (Exception $e) {
+            return json(['ret' => 0, 'msg' => '清空失败：' . $e->getMessage()]);
+        }
     }
 }

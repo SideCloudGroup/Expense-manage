@@ -68,7 +68,7 @@
         document.querySelector('#enableTotp').addEventListener('click', async () => {
             const resp = await fetch('/user/totp_reg');
             const data = await resp.json();
-            var modal = new bootstrap.Modal(document.getElementById('totpModal'), {
+            var modal = new tabler.bootstrap.Modal(document.getElementById('totpModal'), {
                 backdrop: 'static',
                 keyboard: false
             });
@@ -87,7 +87,7 @@
                 });
                 modal.show();
             } else {
-                var fail_modal = new bootstrap.Modal(document.getElementById('fail-dialog'));
+                var fail_modal = new tabler.bootstrap.Modal(document.getElementById('fail-dialog'));
                 document.getElementById('fail-message').innerText = data.msg;
                 fail_modal.show();
             }
@@ -107,9 +107,9 @@
             })
                 .then(response => response.json())
                 .then(data => {
-                    var totpModal = new bootstrap.Modal(document.getElementById('totpModal'));
-                    var successDialog = new bootstrap.Modal(document.getElementById('success-dialog'));
-                    var failDialog = new bootstrap.Modal(document.getElementById('fail-dialog'));
+                    var totpModal = new tabler.bootstrap.Modal(document.getElementById('totpModal'));
+                    var successDialog = new tabler.bootstrap.Modal(document.getElementById('success-dialog'));
+                    var failDialog = new tabler.bootstrap.Modal(document.getElementById('fail-dialog'));
 
                     if (data.ret === 1) {
                         totpModal.hide();

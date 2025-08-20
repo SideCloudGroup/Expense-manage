@@ -6,36 +6,36 @@
         <div class="card card-md">
             <div class="card-body">
                 <form hx-post="/auth/register" hx-swap="none" hx-trigger="submit">
-                <h2 class="h2 text-center mb-4">用户注册</h2>
-                <div class="mb-3">
-                    <label class="form-label"><i class="fa-solid fa-user"></i> 用户名</label>
-                    <input class="form-control" name="username" placeholder="请输入用户名"
-                           type="text">
-                </div>
-                <div class="mb-2">
-                    <label class="form-label"><i class="fa-solid fa-lock"></i> 密码</label>
-                    <div class="input-group input-group-flat">
-                        <input class="form-control" name="password" placeholder="请输入密码"
-                               required type="password">
+                    <h2 class="h2 text-center mb-4">用户注册</h2>
+                    <div class="mb-3">
+                        <label class="form-label"><i class="fa-solid fa-user"></i> 用户名</label>
+                        <input class="form-control" name="username" placeholder="请输入用户名"
+                               type="text">
                     </div>
-                </div>
-                <div class="mb-2">
-                    <label class="form-label">
-                        重复密码
-                    </label>
-                    <div class="input-group input-group-flat">
-                        <input class="form-control" name="confirm_password"
-                               placeholder="请重复密码" required type="password">
+                    <div class="mb-2">
+                        <label class="form-label"><i class="fa-solid fa-lock"></i> 密码</label>
+                        <div class="input-group input-group-flat">
+                            <input class="form-control" name="password" placeholder="请输入密码"
+                                   required type="password">
+                        </div>
                     </div>
-                </div>
-                <div class="mb-2">
+                    <div class="mb-2">
+                        <label class="form-label">
+                            重复密码
+                        </label>
+                        <div class="input-group input-group-flat">
+                            <input class="form-control" name="confirm_password"
+                                   placeholder="请重复密码" required type="password">
+                        </div>
+                    </div>
+                    <div class="mb-2">
                         {include file="/captcha"}
                     </div>
-                <div class="form-footer">
-                    <button class="btn btn-primary w-100" type="submit">
-                        注册
-                    </button>
-                </div>
+                    <div class="form-footer">
+                        <button class="btn btn-primary w-100" type="submit">
+                            注册
+                        </button>
+                    </div>
                 </form>
             </div>
         </div>

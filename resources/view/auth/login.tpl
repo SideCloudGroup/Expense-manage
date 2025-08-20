@@ -51,14 +51,14 @@
 {include file="/footer"}
 
 <script>
-    const { startAuthentication } =
-    SimpleWebAuthnBrowser;
+    const {startAuthentication} =
+        SimpleWebAuthnBrowser;
     document.getElementById('webauthnLogin').addEventListener('click', async () => {
         const resp = await fetch('/auth/webauthn_request');
         const options = await resp.json();
         let asseResp;
         try {
-            asseResp = await startAuthentication({ optionsJSON: options });
+            asseResp = await startAuthentication({optionsJSON: options});
         } catch (error) {
             Swal.fire({
                 icon: 'error',
