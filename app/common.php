@@ -1,9 +1,6 @@
 <?php
 // 应用公共文件
 
-use app\model\Currency;
-use app\model\Party;
-
 function getSetting(string $key, $default = null)
 {
     return app()->settingService->getSetting($key, $default);

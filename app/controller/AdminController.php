@@ -423,11 +423,29 @@ class AdminController extends BaseController
             if ($currency->is_default) {
                 return json(['ret' => 0, 'msg' => '不能删除默认货币']);
             }
-            // TODO 检查是否有项目使用该货币
 
-            $currency->delete();
+            // 检查是否有派对使用该货币作为基础货币
+            $partyCount = Db::table('party')->where('base_currency', $code)->count();
+            if ($partyCount > 0) {
+                return json(['ret' => 0, 'msg' => "该货币正在被 {$partyCount} 个派对使用，无法删除"]);
+            }
 
-            if ($currency->save()) {
+            // 检查是否有派对在支持货币中包含该货币
+            $supportedPartyCount = Db::table('party')
+                ->where('supported_currencies', 'like', '%"' . $code . '"%')
+                ->count();
+            if ($supportedPartyCount > 0) {
+                return json(['ret' => 0, 'msg' => "该货币正在被 {$supportedPartyCount} 个派对支持，无法删除"]);
+            }
+
+            // 检查是否有项目使用该货币
+            $itemCount = Db::table('item')->where('unit', $code)->count();
+            if ($itemCount > 0) {
+                return json(['ret' => 0, 'msg' => "该货币正在被 {$itemCount} 个项目使用，无法删除"]);
+            }
+
+            // 执行删除
+            if ($currency->delete()) {
                 return json(['ret' => 1, 'msg' => '货币删除成功'])->header(['HX-Refresh' => 'true']);
             } else {
                 return json(['ret' => 0, 'msg' => '删除失败']);
@@ -464,4 +482,6 @@ class AdminController extends BaseController
             'currency' => $currency
         ]);
     }
+
+
 }

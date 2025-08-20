@@ -135,9 +135,9 @@ class UserController extends BaseController
 
             $exchangeRate = app()->currencyService->getPartyExchangeRate($baseCurrency, $supportedCurrencies);
         } else {
-            // 使用系统默认货币
-            $baseCurrency = app()->currencyService->getDefaultCurrency();
-            $exchangeRate = app()->currencyService->getExchangeRate();
+            // 如果没有派对，使用默认货币（CNY）
+            $baseCurrency = 'cny';
+            $exchangeRate = ['cny' => 1];
         }
 
         if ($request->param('unit') === $baseCurrency) {
